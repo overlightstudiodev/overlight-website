@@ -44,6 +44,24 @@ const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 8
     <script is:inline>
       document.documentElement.classList.add("js");
     </script>
+    <!--
+      GitHub Pages menyuruh browser menyimpan HTML 10 menit (Chrome mematuhinya ketat).
+      Cek version.json tanpa cache; kalau ada versi lebih baru, muat ulang sekali.
+    -->
+    <script is:inline define:vars={{ buildId: __BUILD_ID__, versionUrl: withBase("/version.json") }}>
+      fetch(versionUrl, { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((v) => {
+          if (!v || !v.id || v.id === buildId) return;
+          const key = "ol-reload-" + v.id;
+          try {
+            if (sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, "1");
+          } catch (e) {}
+          location.reload();
+        })
+        .catch(() => {});
+    </script>
     <slot name="head" />
   </head>
   <body>
