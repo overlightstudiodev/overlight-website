@@ -1,6 +1,6 @@
 ---
 import logo from "../assets/brand/overlight-logo.svg?raw";
-import { SITE } from "../consts";
+import { SITE, gmailLink, waLink } from "../consts";
 import { getLang, href, swapLangPath, t } from "../i18n";
 
 interface Props {
@@ -12,7 +12,8 @@ const year = new Date().getFullYear();
 // Logo asli utuh (simbol + OVER LIGHT + tagline), ID gradien dibuat unik.
 const footLogo = logo.replaceAll("olg-", "olgf-").replace("<svg ", '<svg aria-hidden="true" ');
 const socials = [
-  { label: "Email", url: SITE.email ? `mailto:${SITE.email}` : "" },
+  { label: "Email", url: SITE.email ? gmailLink(lang) : "" },
+  { label: "WhatsApp", url: SITE.whatsapp ? waLink(lang) : "" },
   { label: "Instagram", url: SITE.instagram },
   { label: "GitHub", url: SITE.github },
 ].filter((s) => s.url);
@@ -22,13 +23,17 @@ const socials = [
   <div class="wrap foot-inner">
     <div class="foot-brand">
       <a href={href(lang, "/")} class="foot-logo" aria-label="Overlight, your creative partner" set:html={footLogo} />
+      <a class="foot-where" href="https://www.google.com/maps/search/?api=1&query=Cibinong%2C%20Bogor%2C%20Indonesia" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+        {t(lang, "contact.where")}
+      </a>
     </div>
     <nav class="foot-links" aria-label="Footer">
       <a href={href(lang, "/#porto")}>{t(lang, "nav.work")}</a>
       <a href={href(lang, "/software")}>{t(lang, "nav.software")}</a>
       <a href={href(lang, "/articles")}>{t(lang, "nav.articles")}</a>
       <a href={href(lang, "/about")}>{t(lang, "nav.about")}</a>
-      {socials.map((s) => <a href={s.url} rel="noopener">{s.label}</a>)}
+      {socials.map((s) => <a href={s.url} target="_blank" rel="noopener">{s.label}</a>)}
       <a href={alt} hreflang={lang === "id" ? "en" : "id"}>{lang === "id" ? "English" : "Bahasa Indonesia"}</a>
     </nav>
   </div>
@@ -62,6 +67,23 @@ const socials = [
   }
   .foot-logo:hover {
     transform: rotate(-3deg) scale(1.03);
+  }
+  .foot-where {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    transition: color 0.2s ease;
+  }
+  .foot-where:hover {
+    color: var(--violet);
+  }
+  .foot-where svg {
+    width: 16px;
+    height: 16px;
   }
   .foot-links {
     display: grid;

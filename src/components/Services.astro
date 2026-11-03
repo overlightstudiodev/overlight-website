@@ -11,7 +11,7 @@ import flEn from "../assets/shots/fastloader-en-list.png";
 import mimoMain from "../assets/shots/mimo-main.png";
 import siteId from "../assets/shots/overlight-site-id.png";
 import siteEn from "../assets/shots/overlight-site-en.png";
-import { SITE } from "../consts";
+import { waLink } from "../consts";
 import { href, type Lang } from "../i18n";
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
   num?: string;
 }
 const { lang, num = "02" } = Astro.props;
-const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
+const contact = waLink(lang);
 
 type Key = "app" | "desktop" | "game" | "web" | "design";
 const copy = {
@@ -188,7 +188,7 @@ const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
           ))
         }
       </div>
-      <a class="svc-foot" href={contact}>
+      <a class="svc-foot" href={contact} target="_blank" rel="noopener">
         <span class="svc-foot-sq" aria-hidden="true"><i /><i /><i /></span>
         <span class="svc-foot-t">{copy.foot.t}</span>
         <span class="svc-foot-l">{copy.foot.link} <span aria-hidden="true">→</span></span>

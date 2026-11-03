@@ -40,7 +40,7 @@ Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) s
 
 ## Yang masih perlu diisi
 
-- `src/consts.ts`: email kontak, Instagram, GitHub (kosong = disembunyikan).
+- `src/consts.ts`: Instagram, GitHub (kosong = disembunyikan). Email & WhatsApp sudah diisi; link dibuat oleh `gmailLink()` (buka Gmail compose) dan `waLink()` (buka chat wa.me).
 - `astro.config.mjs`: `site` = domain asli (sekarang placeholder `overlight.pages.dev`).
 - Link download FastLoader, ToiletGo, MIMO saat sudah rilis publik.
 - Ikon ToiletGo (`src/assets/apps/toiletgo.svg`) buatan sementara dari maskot tetes air; aplikasinya masih pakai ikon default Android.

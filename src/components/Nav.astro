@@ -1,6 +1,6 @@
 ---
 import BrandMark from "./BrandMark.astro";
-import { SITE } from "../consts";
+import { waLink } from "../consts";
 import { getLang, href, swapLangPath, t } from "../i18n";
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 const lang = getLang(Astro.url);
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const alt = Astro.props.altPath ?? swapLangPath(Astro.url);
-const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
+const contact = waLink(lang);
 
 const links = [
   { label: t(lang, "nav.work"), to: href(lang, "/#porto"), match: href(lang, "/") },
@@ -52,7 +52,7 @@ const isActive = (m: string) => {
     </nav>
 
     <div class="nav-end">
-      <a href={contact} class="nav-cta glass">
+      <a href={contact} class="nav-cta glass" target="_blank" rel="noopener">
         <span class="nav-dot" aria-hidden="true"></span>
         {t(lang, "nav.cta")}
       </a>
@@ -74,7 +74,7 @@ const isActive = (m: string) => {
         </a>
       ))
     }
-    <a href={contact} class="sheet-link sheet-cta" style={`--i:${links.length}`}>
+    <a href={contact} class="sheet-link sheet-cta" style={`--i:${links.length}`} target="_blank" rel="noopener">
       <span class="nav-dot" aria-hidden="true"></span>
       {t(lang, "nav.cta")}
     </a>

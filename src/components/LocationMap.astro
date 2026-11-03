@@ -1,0 +1,404 @@
+---
+/**
+ * Animasi lokasi studio: peta titik Jawa & sekitarnya → zoom ke Jawa Barat → pin logo jatuh di Cibinong.
+ * Garis pantai disederhanakan (gaya dot-map), bukan peta presisi.
+ */
+import type { Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+
+const copy = {
+  id: { city: "Cibinong, Bogor", region: "Jawa Barat, Indonesia", now: "Sekarang", open: "Buka di Google Maps", replay: "Putar ulang", here: "Markas Overlight" },
+  en: { city: "Cibinong, Bogor", region: "West Java, Indonesia", now: "Now", open: "Open in Google Maps", replay: "Replay", here: "Overlight HQ" },
+}[lang];
+const mapsUrl = "https://www.google.com/maps/search/?api=1&query=Cibinong%2C%20Bogor%2C%20Indonesia";
+
+// Proyeksi sederhana: 100 unit per derajat, kotak lon 100–118, lat 2.5 s/d -9.5
+const LON0 = 100;
+const LAT0 = 2.5;
+const K = 100;
+const px = (lon: number, lat: number): [number, number] => [(lon - LON0) * K, (LAT0 - lat) * K];
+
+type Poly = [number, number][];
+const JAVA: Poly = [
+  [105.65, -6.48], [105.85, -6.05], [106.0, -5.93], [106.6, -6.03], [106.85, -6.1], [107.05, -6.0], [107.6, -5.95],
+  [108.2, -6.2], [108.6, -6.72], [109.15, -6.85], [109.7, -6.88], [110.42, -6.95], [110.65, -6.55], [110.9, -6.45],
+  [111.35, -6.7], [112.05, -6.9], [112.65, -7.15], [112.9, -7.62], [113.2, -7.72], [114.0, -7.7], [114.45, -7.75],
+  [114.4, -8.75], [113.6, -8.45], [113.2, -8.33], [112.6, -8.42], [112.2, -8.3], [111.1, -8.2], [110.35, -8.05],
+  [109.6, -7.8], [109.0, -7.73], [108.65, -7.7], [107.8, -7.65], [106.4, -7.37], [106.55, -7.0], [106.2, -6.93],
+  [105.25, -6.78],
+];
+const SUMATRA: Poly = [
+  [95.3, 5.55], [98.7, 3.6], [101.4, 1.7], [103.5, 0.8], [104.5, -1.0], [106.0, -3.0], [105.8, -5.9], [104.6, -5.9],
+  [102.3, -3.8], [100.35, -0.95], [98.8, 1.7], [96.1, 4.1],
+];
+const BORNEO: Poly = [
+  [109.3, 0.0], [110.3, 1.6], [114.0, 4.4], [116.1, 6.0], [117.0, 7.0], [118.1, 5.8], [117.9, 4.2], [117.6, 3.3],
+  [116.8, -1.25], [116.0, -3.6], [114.6, -3.6], [111.6, -3.0], [110.0, -1.8],
+];
+const SMALL: Poly[] = [
+  [[112.7, -7.05], [114.1, -6.9], [114.1, -7.2], [112.8, -7.2]], // Madura
+  [[114.45, -8.1], [115.0, -8.05], [115.7, -8.38], [115.2, -8.85], [114.6, -8.45]], // Bali
+  [[115.85, -8.25], [116.6, -8.25], [116.75, -8.9], [115.9, -8.85]], // Lombok
+  [[116.8, -8.4], [118.0, -8.2], [118.0, -9.0], [116.9, -8.9]], // Sumbawa
+  [[105.15, -1.6], [106.4, -1.9], [106.8, -3.0], [105.8, -2.9]], // Bangka
+  [[107.6, -2.6], [108.3, -2.6], [108.3, -3.2], [107.6, -3.2]], // Belitung
+];
+const LAND = [JAVA, SUMATRA, BORNEO, ...SMALL];
+
+const inside = (lon: number, lat: number, poly: Poly) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+const onLand = (lon: number, lat: number) => LAND.some((p) => inside(lon, lat, p));
+
+/** Titik-titik grid di daratan, dikelompokkan per pita vertikal (untuk animasi bergelombang). */
+const dots = (step: number, box: { lon: [number, number]; lat: [number, number] }, bands: number) => {
+  const groups: string[] = Array.from({ length: bands }, () => "");
+  for (let lon = box.lon[0]; lon <= box.lon[1]; lon += step) {
+    for (let lat = box.lat[0]; lat >= box.lat[1]; lat -= step) {
+      if (!onLand(lon, lat)) continue;
+      const [x, y] = px(lon, lat);
+      const b = Math.min(bands - 1, Math.floor(((lon - box.lon[0]) / (box.lon[1] - box.lon[0])) * bands));
+      groups[b] += `M${x.toFixed(0)} ${y.toFixed(0)}h0`;
+    }
+  }
+  return groups.filter(Boolean);
+};
+const coarse = dots(0.36, { lon: [100, 118], lat: [2.5, -9.5] }, 12);
+const fine = dots(0.1, { lon: [104.9, 108.9], lat: [-5.4, -7.9] }, 6);
+
+const [cx, cy] = px(106.85, -6.48); // Cibinong
+const [jx, jy] = px(106.85, -6.2); // Jakarta
+const [bx, by] = px(106.8, -6.6); // Bogor
+const ZOOM = { w: 360, h: 240 };
+const zoomBox = `${cx - ZOOM.w / 2} ${cy - ZOOM.h / 2} ${ZOOM.w} ${ZOOM.h}`;
+---
+
+<div class="loc" data-loc data-zoom={zoomBox}>
+  <a class="loc-map" href={mapsUrl} target="_blank" rel="noopener" aria-label={`${copy.city}, ${copy.region}. ${copy.open}`}>
+    <svg viewBox="0 0 1800 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" data-svg>
+      <defs>
+        <linearGradient id="loc-g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1800" y2="0">
+          <stop offset="0" stop-color="#74bcde" />
+          <stop offset="0.45" stop-color="#6c86d6" />
+          <stop offset="0.7" stop-color="#7d55cc" />
+          <stop offset="1" stop-color="#a660d8" />
+        </linearGradient>
+        <linearGradient id="loc-pin" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#74bcde" />
+          <stop offset="0.5" stop-color="#7d55cc" />
+          <stop offset="1" stop-color="#a660d8" />
+        </linearGradient>
+        <radialGradient id="loc-glow">
+          <stop offset="0" stop-color="#a660d8" stop-opacity="0.35" />
+          <stop offset="1" stop-color="#a660d8" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <g class="coarse" stroke="url(#loc-g)" stroke-width="16" stroke-linecap="round">
+        {coarse.map((d) => <path class="band" d={d} />)}
+      </g>
+      <g class="fine" stroke="url(#loc-g)" stroke-width="5" stroke-linecap="round">
+        {fine.map((d) => <path class="fband" d={d} />)}
+      </g>
+      <circle class="glow" cx={cx} cy={cy} r="70" fill="url(#loc-glow)" />
+      <g class="cities">
+        <circle cx={jx} cy={jy} r="2.6" fill="#1b1830" />
+        <text x={jx - 6} y={jy + 3} text-anchor="end">Jakarta</text>
+        <circle cx={bx} cy={by} r="2.6" fill="#1b1830" />
+        <text x={bx - 6} y={by + 4} text-anchor="end">Bogor</text>
+      </g>
+      <g class="ripples" transform={`translate(${cx} ${cy})`}>
+        <circle r="10" />
+        <circle r="10" />
+        <circle r="10" />
+      </g>
+      <g class="pin" transform={`translate(${cx} ${cy}) scale(0.56)`}>
+        <ellipse class="pin-shadow" cx="0" cy="0" rx="8" ry="3" />
+        <g class="pin-body">
+          <!-- pin = kotak besar logo + ekor -->
+          <path d="M-11 -42h22a7 7 0 0 1 7 7v18a7 7 0 0 1-7 7h-6l-5 9-5-9h-6a7 7 0 0 1-7-7v-18a7 7 0 0 1 7-7z" fill="url(#loc-pin)" />
+          <rect x="-6.5" y="-35.5" width="13" height="13" rx="4" fill="#fff" />
+        </g>
+      </g>
+    </svg>
+  </a>
+
+  <div class="loc-card" data-card>
+    <p class="loc-here"><span class="loc-sq" aria-hidden="true"></span>{copy.here}</p>
+    <p class="loc-city">{copy.city}</p>
+    <p class="loc-region">{copy.region} · 6.48°S 106.85°E</p>
+    <p class="loc-time">{copy.now} <b data-time>--:--</b> WIB</p>
+  </div>
+
+  <div class="loc-actions">
+    <a class="loc-btn" href={mapsUrl} target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+      {copy.open}
+    </a>
+    <button class="loc-btn" type="button" data-replay>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+      {copy.replay}
+    </button>
+  </div>
+</div>
+
+<script>
+  import { gsap } from "gsap";
+
+  document.querySelectorAll<HTMLElement>("[data-loc]").forEach((root) => {
+    const svg = root.querySelector<SVGSVGElement>("[data-svg]")!;
+    const card = root.querySelector<HTMLElement>("[data-card]")!;
+    const timeEl = root.querySelector<HTMLElement>("[data-time]")!;
+    const zoom = root.dataset.zoom!;
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // jam WIB yang berjalan
+    const fmt = new Intl.DateTimeFormat("id-ID", { timeZone: "Asia/Jakarta", hour: "2-digit", minute: "2-digit", hour12: false });
+    const tick = () => (timeEl.textContent = fmt.format(new Date()).replace(".", ":"));
+    tick();
+    setInterval(tick, 20000);
+
+    const q = (s: string) => [...root.querySelectorAll<SVGElement>(s)];
+    const full = "0 0 1800 1200";
+
+    const endState = () => {
+      gsap.set(svg, { attr: { viewBox: zoom } });
+      gsap.set(q(".band"), { opacity: 0.06 });
+      gsap.set(q(".fband"), { opacity: 1 });
+      gsap.set(q(".cities, .glow"), { opacity: 1 });
+      gsap.set(q(".pin-body"), { y: 0, opacity: 1 });
+      gsap.set(q(".pin-shadow"), { opacity: 1, scale: 1 });
+      gsap.set(card, { opacity: 1, y: 0, scale: 1 });
+      root.classList.add("landed");
+    };
+    if (calm) {
+      endState();
+      return;
+    }
+
+    const build = () => {
+      root.classList.remove("landed");
+      const tl = gsap.timeline({ onComplete: () => root.classList.add("landed") });
+      tl.set(svg, { attr: { viewBox: full } })
+        .set(q(".band"), { opacity: 0, y: 40 })
+        .set(q(".fband"), { opacity: 0 })
+        .set(q(".cities, .glow"), { opacity: 0 })
+        .set(q(".pin-body"), { y: -90, opacity: 0 })
+        .set(q(".pin-shadow"), { opacity: 0, scale: 0.3, transformOrigin: "50% 50%" })
+        .set(card, { opacity: 0, y: 16, scale: 0.94 })
+        // 1) peta titik muncul bergelombang dari barat ke timur
+        .to(q(".band"), { opacity: 1, y: 0, duration: 0.7, ease: "back.out(1.8)", stagger: 0.06 })
+        // 2) zoom ke Jawa Barat; titik kasar memudar, titik rapat muncul
+        .to(svg, { attr: { viewBox: zoom }, duration: 1.8, ease: "power3.inOut" }, "+=0.35")
+        .to(q(".band"), { opacity: 0.06, duration: 1.2 }, "<0.4")
+        .to(q(".fband"), { opacity: 1, duration: 0.6, stagger: 0.08 }, "<0.3")
+        .to(q(".cities, .glow"), { opacity: 1, duration: 0.5 }, "-=0.3")
+        // 3) pin jatuh memantul di Cibinong
+        .to(q(".pin-body"), { y: 0, opacity: 1, duration: 0.9, ease: "bounce.out" }, "-=0.1")
+        .to(q(".pin-shadow"), { opacity: 1, scale: 1, duration: 0.9, ease: "bounce.out" }, "<")
+        // 4) kartu lokasi
+        .to(card, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(2)" }, "-=0.35");
+      return tl;
+    };
+
+    let tl: gsap.core.Timeline | null = null;
+    const io = new IntersectionObserver(
+      ([en]) => {
+        if (en.isIntersecting && !tl) {
+          tl = build();
+          io.disconnect();
+        }
+      },
+      { threshold: 0.45 },
+    );
+    io.observe(root);
+    root.querySelector("[data-replay]")?.addEventListener("click", () => {
+      tl?.kill();
+      tl = build();
+    });
+  });
+</script>
+
+<style>
+  .loc {
+    position: relative;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: linear-gradient(160deg, #f6f3ff, #eef6fc);
+    box-shadow: inset 0 0 0 1px var(--line);
+    aspect-ratio: 3 / 2;
+    min-height: 320px;
+  }
+  .loc-map {
+    position: absolute;
+    inset: 0;
+    display: block;
+    cursor: pointer;
+  }
+  .loc-map svg {
+    width: 100%;
+    height: 100%;
+  }
+  .cities text {
+    font: 700 9px var(--font);
+    fill: var(--ink-2);
+  }
+  .ripples circle {
+    fill: none;
+    stroke: var(--violet);
+    stroke-width: 1.6;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .landed .ripples circle {
+    animation: ripple 2.4s ease-out infinite;
+  }
+  .landed .ripples circle:nth-child(2) {
+    animation-delay: 0.8s;
+  }
+  .landed .ripples circle:nth-child(3) {
+    animation-delay: 1.6s;
+  }
+  @keyframes ripple {
+    from { opacity: 0.8; transform: scale(0.4); }
+    to { opacity: 0; transform: scale(3.4); }
+  }
+  .pin-shadow {
+    fill: rgb(27 24 48 / 0.25);
+  }
+  .landed .pin-body {
+    animation: pin-bob 2.4s ease-in-out infinite;
+  }
+  @keyframes pin-bob {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -3px; }
+  }
+
+  .loc-card {
+    position: absolute;
+    left: calc(50% + clamp(22px, 4vw, 40px));
+    top: calc(50% - clamp(110px, 14vw, 150px));
+    max-width: calc(50% - 40px);
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 16px 30px -18px rgb(76 52 160 / 0.45);
+    pointer-events: none;
+  }
+  .loc-card p {
+    margin: 0;
+  }
+  .loc-here {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--violet);
+  }
+  .loc-sq {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--grad);
+  }
+  .loc-city {
+    margin-top: 6px !important;
+    font-size: clamp(18px, 2vw, 24px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .loc-region {
+    margin-top: 2px !important;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .loc-time {
+    margin-top: 8px !important;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .loc-time b {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+
+  .loc-actions {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .loc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 8px 18px -12px rgb(76 52 160 / 0.4);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    transition: transform 0.4s var(--boing);
+  }
+  .loc-btn:hover {
+    transform: translateY(-2px);
+  }
+  .loc-btn svg {
+    width: 16px;
+    height: 16px;
+    color: var(--violet);
+  }
+
+  /* HP: peta di atas, kartu & tombol di bawahnya (tidak menutupi peta) */
+  @media (max-width: 560px) {
+    .loc {
+      aspect-ratio: auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .loc-map {
+      position: relative;
+      aspect-ratio: 4 / 3;
+    }
+    .loc-card {
+      position: relative;
+      left: auto;
+      top: auto;
+      max-width: none;
+      margin: 0 12px;
+    }
+    .loc-actions {
+      position: relative;
+      left: auto;
+      bottom: auto;
+      padding: 12px;
+    }
+  }
+</style>
