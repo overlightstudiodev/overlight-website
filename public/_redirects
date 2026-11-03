@@ -1,3 +1,11 @@
 # Cloudflare Pages. Sejak English jadi bahasa default, versi Inggris pindah dari /en/ ke root.
-/en       /        301
-/en/*     /:splat  301
+# Aturan per halaman (bukan "/en/* /:splat") supaya tujuan selalu diawali path situs sendiri:
+# "/:splat" bisa jadi "//domain-lain.com" (open redirect) untuk URL seperti /en//domain-lain.com.
+/en                /                   301
+/en/               /                   301
+/en/about          /about              301
+/en/about/         /about/             301
+/en/software       /software           301
+/en/articles       /articles           301
+/en/software/*     /software/:splat    301
+/en/articles/*     /articles/:splat    301
