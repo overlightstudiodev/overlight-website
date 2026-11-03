@@ -15,6 +15,14 @@ npm run check    # cek tipe
 
 Intro logo diputar sekali per sesi browser. Untuk memutar ulang, buka `http://localhost:4321/?intro`.
 
+## Online (sementara)
+
+https://overlightstudiodev.github.io/overlight-website/
+
+Repo: https://github.com/overlightstudiodev/overlight-website. Setiap push ke `main` otomatis di-build dan di-deploy oleh `.github/workflows/deploy.yml` (GitHub Pages, sumber "GitHub Actions"). Workflow mengisi `SITE_URL` dan `BASE_PATH` (`/overlight-website`); semua link internal memakai `href()` / `withBase()` di `src/i18n.ts` supaya tetap benar di sub-folder. Saat pindah ke domain sendiri: hapus `BASE_PATH` (jadi `/`) dan isi `SITE_URL` dengan domain baru.
+
+Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) sengaja tidak di-upload (lihat `.gitignore`).
+
 ## Menambah konten (cukup tambah file Markdown)
 
 | Mau apa | File |
