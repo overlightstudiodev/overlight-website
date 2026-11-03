@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
+import BackToTop from "../components/BackToTop.astro";
 import { SITE } from "../consts";
 import { getLang, swapLangPath, withBase } from "../i18n";
 import ogImage from "../assets/brand/overlight-logo-original.png";
@@ -52,6 +53,7 @@ const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 8
       <slot />
     </main>
     <Footer altPath={alt} />
+    <BackToTop />
 
     <script>
       // Elemen [data-reveal] muncul pelan saat masuk layar.
