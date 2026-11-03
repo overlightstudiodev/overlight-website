@@ -1,0 +1,1113 @@
+---
+/**
+ * Layanan Overlight: kartu tab interaktif.
+ * Kiri daftar layanan (berganti otomatis dengan bar progres), kanan visual + label + deskripsi + tautan bukti.
+ */
+import { Image } from "astro:assets";
+import dmbResult from "../assets/shots/dmb-result.png";
+import tgMap from "../assets/shots/toiletgo-jelajah-pastel.png";
+import flId from "../assets/shots/fastloader-id-list.png";
+import flEn from "../assets/shots/fastloader-en-list.png";
+import mimoMain from "../assets/shots/mimo-main.png";
+import siteId from "../assets/shots/overlight-site-id.png";
+import siteEn from "../assets/shots/overlight-site-en.png";
+import mark from "../assets/brand/overlight-mark.svg?raw";
+import { SITE } from "../consts";
+import { href, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+  num?: string;
+}
+const { lang, num = "02" } = Astro.props;
+const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
+
+type Key = "app" | "desktop" | "game" | "web" | "design";
+const copy = {
+  id: {
+    eyebrow: "Layanan",
+    titleA: "Yang bisa kami",
+    titleB: "bikin bareng kamu",
+    lead: "Satu tim kecil untuk ide, desain, kode, sampai rilis. Pilih salah satu untuk lihat lebih dekat.",
+    kcal: "620 kkal",
+    foot: { t: "Punya ide di luar daftar ini?", link: "Ngobrol yuk" },
+    items: [
+      {
+        key: "app",
+        title: "Aplikasi mobile",
+        tags: ["Android", "Kamera & AI", "Rilis Play Store", "Premium & langganan"],
+        desc: "Dari coretan ide sampai rilis di Google Play: desain layar, aplikasi native, fitur AI seperti hitung kalori dari foto, lalu pembaruan rutin setelah meluncur.",
+        link: { label: "Lihat Diet Mulai Besok", to: href(lang, "/software/diet-mulai-besok") },
+      },
+      {
+        key: "desktop",
+        title: "Aplikasi desktop",
+        tags: ["macOS", "Windows", "Ekstensi browser", "Installer siap pakai"],
+        desc: "Aplikasi Mac dan Windows yang ringan dan enak dipakai, lengkap dengan installer, ekstensi browser, dan pengaturan yang tidak bikin bingung.",
+        link: { label: "Lihat FastLoader", to: href(lang, "/software/fastloader") },
+      },
+      {
+        key: "game",
+        title: "Game & dunia interaktif",
+        tags: ["Roblox", "Godot", "Web 3D", "Event & festival"],
+        desc: "Dunia kecil yang seru dijelajahi: map Roblox untuk komunitas atau event, game Godot, sampai pengalaman 3D yang jalan langsung di browser.",
+        link: { label: "Ngobrol soal game-mu", to: contact },
+      },
+      {
+        key: "web",
+        title: "Website & landing page",
+        tags: ["Landing page", "Company profile", "Undangan digital", "Dua bahasa"],
+        desc: "Website cepat dengan animasi yang hidup, mudah diisi sendiri lewat Markdown, dan siap dua bahasa. Website yang sedang kamu buka ini salah satunya.",
+        link: { label: "Lihat karya kami", to: href(lang, "/#porto") },
+      },
+      {
+        key: "design",
+        title: "Desain & motion",
+        tags: ["Identitas brand", "UI/UX", "Konten media sosial", "Video animasi"],
+        desc: "Logo dan sistem visual, desain antarmuka, carousel media sosial, sampai video motion yang siap diunggah.",
+        link: { label: "Ceritakan brand-mu", to: contact },
+      },
+    ],
+  },
+  en: {
+    eyebrow: "Services",
+    titleA: "What we can",
+    titleB: "build with you",
+    lead: "One small team for the idea, design, code, and launch. Pick one to take a closer look.",
+    kcal: "620 kcal",
+    foot: { t: "Have an idea that is not on this list?", link: "Let's talk" },
+    items: [
+      {
+        key: "app",
+        title: "Mobile apps",
+        tags: ["Android", "Camera & AI", "Play Store launch", "Premium & subscriptions"],
+        desc: "From a scribbled idea to a Google Play launch: screen design, native apps, AI features like counting calories from a photo, and regular updates after release.",
+        link: { label: "See Diet Mulai Besok", to: href(lang, "/software/diet-mulai-besok") },
+      },
+      {
+        key: "desktop",
+        title: "Desktop apps",
+        tags: ["macOS", "Windows", "Browser extensions", "Ready-to-run installers"],
+        desc: "Light, friendly apps for Mac and Windows, complete with installers, browser extensions, and settings that never get in the way.",
+        link: { label: "See FastLoader", to: href(lang, "/software/fastloader") },
+      },
+      {
+        key: "game",
+        title: "Games & interactive worlds",
+        tags: ["Roblox", "Godot", "Web 3D", "Events & festivals"],
+        desc: "Small worlds that are fun to explore: Roblox maps for communities or events, Godot games, and 3D experiences that run right in the browser.",
+        link: { label: "Talk about your game", to: contact },
+      },
+      {
+        key: "web",
+        title: "Websites & landing pages",
+        tags: ["Landing pages", "Company profiles", "Digital invitations", "Bilingual"],
+        desc: "Fast websites with lively motion, easy to update yourself in Markdown, and ready for two languages. The site you are on right now is one of them.",
+        link: { label: "See our work", to: href(lang, "/#porto") },
+      },
+      {
+        key: "design",
+        title: "Design & motion",
+        tags: ["Brand identity", "UI/UX", "Social media content", "Animated video"],
+        desc: "Logos and visual systems, interface design, social media carousels, and motion videos ready to post.",
+        link: { label: "Tell us about your brand", to: contact },
+      },
+    ],
+  },
+}[lang] as { eyebrow: string; titleA: string; titleB: string; lead: string; kcal: string; foot: { t: string; link: string }; items: { key: Key; title: string; tags: string[]; desc: string; link: { label: string; to: string } }[] };
+
+const fl = lang === "id" ? flId : flEn;
+const site = lang === "id" ? siteId : siteEn;
+const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
+const markSvg = mark.replaceAll("olg-", "olgs-");
+---
+
+<section class="section svc" id="layanan" data-svc>
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow sec-eyebrow"><span class="sec-num">{num}</span>{copy.eyebrow}</p>
+        <h2><span class="thin">{copy.titleA}</span> {copy.titleB}</h2>
+      </div>
+      <p>{copy.lead}</p>
+    </div>
+
+    <div class="svc-card" data-reveal style="--d:1">
+      <div class="svc-side">
+      <div class="svc-tabs" role="tablist" aria-label={copy.eyebrow}>
+        {
+          copy.items.map((s, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`svc-tab-${s.key}`}
+              aria-controls={`svc-panel-${s.key}`}
+              aria-selected={i === 0 ? "true" : "false"}
+              tabindex={i === 0 ? 0 : -1}
+              class:list={["svc-tab", { active: i === 0 }]}
+            >
+              <span class="svc-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  {s.key === "app" && (
+                    <>
+                      <rect x="6.5" y="2.5" width="11" height="19" rx="3" />
+                      <path d="M10.5 18h3" />
+                    </>
+                  )}
+                  {s.key === "desktop" && (
+                    <>
+                      <rect x="3.5" y="4.5" width="17" height="11.5" rx="2" />
+                      <path d="M2 19.5h20" />
+                    </>
+                  )}
+                  {s.key === "game" && (
+                    <>
+                      <rect x="2.5" y="7" width="19" height="11" rx="5" />
+                      <path d="M7.5 10.5v4M5.5 12.5h4" />
+                      <rect x="14" y="10" width="2.6" height="2.6" rx="0.8" />
+                      <rect x="16.6" y="13" width="2.6" height="2.6" rx="0.8" />
+                    </>
+                  )}
+                  {s.key === "web" && (
+                    <>
+                      <rect x="2.5" y="4" width="19" height="16" rx="3" />
+                      <path d="M2.5 9h19" />
+                      <path d="M6 6.5h.01M8.5 6.5h.01" />
+                    </>
+                  )}
+                  {s.key === "design" && (
+                    <>
+                      <rect x="3" y="3" width="9" height="9" rx="3" />
+                      <circle cx="16.5" cy="16.5" r="4.8" />
+                    </>
+                  )}
+                </svg>
+              </span>
+              <span class="svc-name">{s.title}</span>
+              <span class="svc-no" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <span class="svc-bar" aria-hidden="true"><i /></span>
+            </button>
+          ))
+        }
+      </div>
+      <a class="svc-foot" href={contact}>
+        <span class="svc-foot-sq" aria-hidden="true"><i /><i /><i /></span>
+        <span class="svc-foot-t">{copy.foot.t}</span>
+        <span class="svc-foot-l">{copy.foot.link} <span aria-hidden="true">→</span></span>
+      </a>
+      </div>
+
+      <div class="svc-panels">
+        {
+          copy.items.map((s, i) => (
+            <div
+              role="tabpanel"
+              id={`svc-panel-${s.key}`}
+              aria-labelledby={`svc-tab-${s.key}`}
+              class:list={["svc-panel", `svc-${s.key}`, { active: i === 0 }]}
+              inert={i !== 0}
+            >
+              <div class="svc-art" aria-hidden="true">
+                {s.key === "app" && (
+                  <div class="art-phones">
+                    <div class="ph ph-a">
+                      <Image src={tgMap} alt="" width={320} />
+                    </div>
+                    <div class="ph ph-b">
+                      <Image src={dmbResult} alt="" width={320} />
+                    </div>
+                    <span class="art-chip">{copy.kcal}</span>
+                  </div>
+                )}
+                {s.key === "desktop" && (
+                  <div class="art-laptop">
+                    <div class="al-lid">
+                      <div class="al-view">
+                        <Image src={fl} alt="" width={900} class="al-a" />
+                        <Image src={mimoMain} alt="" width={900} class="al-b" />
+                      </div>
+                    </div>
+                    <div class="al-base" />
+                  </div>
+                )}
+                {s.key === "game" && (
+                  <div class="art-game">
+                    <span class="cloud c1" />
+                    <span class="cloud c2" />
+                    <span class="plat p1" />
+                    <span class="plat p2" />
+                    <span class="plat p3" />
+                    <span class="flag" />
+                    <span class="coin k1" />
+                    <span class="coin k2" />
+                    <span class="coin k3" />
+                    <span class="hero">
+                      <i />
+                      <i />
+                    </span>
+                    <span class="ground" />
+                  </div>
+                )}
+                {s.key === "web" && (
+                  <div class="art-browser" style={`--shift:-${siteShift.toFixed(2)}%`}>
+                    <div class="bw-bar">
+                      <i />
+                      <i />
+                      <i />
+                      <span class="bw-url">overlightstudiodev.github.io</span>
+                    </div>
+                    <div class="bw-view">
+                      <Image src={site} alt="" width={900} />
+                    </div>
+                  </div>
+                )}
+                {s.key === "design" && (
+                  <div class="art-design">
+                    <span class="ds-mark" set:html={markSvg} />
+                    <div class="ds-swatches">
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </div>
+                    <div class="ds-type">
+                      <b>Aa</b>
+                      <span>Aa</span>
+                    </div>
+                    <svg class="ds-curve" viewBox="0 0 200 40" fill="none">
+                      <defs>
+                        <linearGradient id="ds-g" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0" stop-color="#74bcde" />
+                          <stop offset="1" stop-color="#a660d8" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M6 34 C 60 34, 80 6, 194 6" />
+                      <rect x="-6" y="-6" width="12" height="12" rx="3.6" fill="url(#ds-g)">
+                        <animateMotion
+                          dur="3.4s"
+                          repeatCount="indefinite"
+                          path="M6 34 C 60 34, 80 6, 194 6"
+                          keyPoints="0;1;0"
+                          keyTimes="0;0.5;1"
+                          calcMode="spline"
+                          keySplines="0.65 0 0.35 1;0.65 0 0.35 1"
+                        />
+                      </rect>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="svc-info">
+                <h3>{s.title}</h3>
+                <ul class="svc-tags">
+                  {s.tags.map((tag) => (
+                    <li>{tag}</li>
+                  ))}
+                </ul>
+                <p>{s.desc}</p>
+                <a class="svc-link" href={s.link.to}>
+                  {s.link.label} <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Tab layanan: berganti otomatis tiap 7 detik (bar progres), berhenti saat kursor/fokus di kartu,
+  // saat bagian ini tidak terlihat, atau bila pengunjung memilih "kurangi gerakan".
+  const DUR = 7000;
+  document.querySelectorAll<HTMLElement>("[data-svc]").forEach((root) => {
+    const card = root.querySelector<HTMLElement>(".svc-card")!;
+    const list = root.querySelector<HTMLElement>("[role=tablist]")!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>("[role=tab]")];
+    const panels = [...root.querySelectorAll<HTMLElement>("[role=tabpanel]")];
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let i = 0;
+    let elapsed = 0;
+    let last = performance.now();
+    let hover = false;
+    let visible = false;
+
+    const select = (n: number, focus = false) => {
+      i = (n + tabs.length) % tabs.length;
+      elapsed = 0;
+      tabs.forEach((t, k) => {
+        const on = k === i;
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        t.style.setProperty("--p", "0");
+      });
+      panels.forEach((p, k) => {
+        p.classList.toggle("active", k === i);
+        p.toggleAttribute("inert", k !== i);
+      });
+      if (focus) tabs[i].focus({ preventScroll: true });
+      // di HP tab berupa deretan yang bisa digeser: geser tab aktif ke tampilan (tanpa menggulir halaman)
+      if (list.scrollWidth > list.clientWidth + 4) {
+        list.scrollTo({ left: tabs[i].offsetLeft - 12, behavior: calm ? "auto" : "smooth" });
+      }
+    };
+
+    tabs.forEach((t, k) => t.addEventListener("click", () => select(k)));
+    list.addEventListener("keydown", (e) => {
+      const map: Record<string, number> = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: tabs.length - 1 };
+      if (e.key in map) {
+        e.preventDefault();
+        select(map[e.key], true);
+      }
+    });
+    card.addEventListener("pointerenter", (e) => {
+      if (e.pointerType === "mouse") hover = true;
+    });
+    card.addEventListener("pointerleave", () => (hover = false));
+    card.addEventListener("focusin", () => (hover = true));
+    card.addEventListener("focusout", () => (hover = false));
+    new IntersectionObserver(([en]) => (visible = en.isIntersecting), { threshold: 0.35 }).observe(card);
+
+    if (calm) return;
+    const tick = (now: number) => {
+      const dt = Math.min(100, now - last);
+      last = now;
+      if (visible && !hover && !document.hidden) {
+        elapsed += dt;
+        const p = Math.min(1, elapsed / DUR);
+        tabs[i].style.setProperty("--p", p.toFixed(4));
+        if (p >= 1) select(i + 1);
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+</script>
+
+<style>
+  .svc-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+    gap: 10px;
+    padding: 10px;
+    border-radius: var(--r-lg);
+    background: var(--card);
+    box-shadow: inset 0 0 0 1px var(--line), var(--shadow);
+  }
+
+  .svc-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+  }
+  .svc-foot {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    margin: 6px;
+    padding: 20px 22px 20px 82px;
+    border-radius: 22px;
+    background: var(--tint);
+    overflow: hidden;
+    transition: transform 0.45s var(--boing);
+  }
+  .svc-foot:hover {
+    transform: translateY(-3px);
+  }
+  .svc-foot-sq {
+    position: absolute;
+    left: 22px;
+    top: 50%;
+    display: grid;
+    grid-template-columns: 14px 18px;
+    gap: 4px;
+    align-items: end;
+    translate: 0 -50%;
+  }
+  .svc-foot-sq i {
+    width: 14px;
+    height: 14px;
+    border-radius: 5px;
+    border: 3.5px solid var(--cyan);
+    transition: transform 0.55s var(--boing);
+  }
+  .svc-foot-sq i:nth-child(2) {
+    width: 18px;
+    height: 18px;
+    border-color: var(--violet);
+  }
+  .svc-foot-sq i:nth-child(3) {
+    border-color: var(--blue);
+    align-self: start;
+  }
+  .svc-foot:hover .svc-foot-sq i {
+    transform: rotate(90deg);
+  }
+  .svc-foot-t {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .svc-foot-l {
+    font-weight: 700;
+    color: var(--violet);
+  }
+
+  /* ---- daftar tab ---- */
+  .svc-tabs {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 6px;
+  }
+  .svc-tab {
+    --p: 0;
+    position: relative;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    min-height: 78px;
+    padding: 12px 18px 12px 14px;
+    border: 0;
+    border-radius: 22px;
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    isolation: isolate;
+    overflow: hidden;
+    transition: color 0.3s ease, transform 0.45s var(--boing);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .svc-tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--grad);
+    opacity: 0;
+    transform: scale(0.96);
+    transition: opacity 0.35s ease, transform 0.5s var(--boing);
+  }
+  .svc-tab:hover {
+    color: var(--ink);
+    background: var(--tint);
+  }
+  .svc-tab.active {
+    color: #fff;
+    background: transparent;
+  }
+  .svc-tab.active::before {
+    opacity: 1;
+    transform: none;
+  }
+  .svc-ico {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    background: var(--tint);
+    color: var(--violet);
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.55s var(--boing);
+  }
+  .svc-ico svg {
+    width: 24px;
+    height: 24px;
+  }
+  .svc-tab:hover .svc-ico {
+    transform: rotate(-8deg) scale(1.06);
+  }
+  .svc-tab.active .svc-ico {
+    background: rgb(255 255 255 / 0.2);
+    color: #fff;
+  }
+  .svc-name {
+    font-size: clamp(18px, 1.6vw, 22px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .svc-no {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .svc-tab.active .svc-no {
+    color: rgb(255 255 255 / 0.8);
+  }
+  .svc-bar {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 9px;
+    height: 3px;
+    border-radius: 3px;
+    background: rgb(255 255 255 / 0.28);
+    opacity: 0;
+    overflow: hidden;
+  }
+  .svc-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #fff;
+    transform: scaleX(var(--p));
+    transform-origin: left;
+  }
+  .svc-tab.active .svc-bar {
+    opacity: 1;
+  }
+
+  /* ---- panel ---- */
+  .svc-panels {
+    display: grid;
+  }
+  .svc-panel {
+    grid-area: 1 / 1;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 22px;
+    padding: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity 0.4s ease, transform 0.6s var(--boing), visibility 0s linear 0.4s;
+  }
+  .svc-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  .svc-art {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--art-bg, var(--tint));
+  }
+  .svc-app {
+    --art-bg: linear-gradient(135deg, #e3f3e1, #e4edff);
+  }
+  .svc-desktop {
+    --art-bg: linear-gradient(135deg, #eef7cf, #ffe9d4);
+  }
+  .svc-game {
+    --art-bg: linear-gradient(#cfe6ff, #eaf3ff 70%);
+  }
+  .svc-web {
+    --art-bg: linear-gradient(135deg, #efeaff, #e4f2fb);
+  }
+  .svc-design {
+    --art-bg: linear-gradient(135deg, #fff0e3, #f3ecff);
+  }
+  .svc-info {
+    padding: 0 clamp(8px, 1.6vw, 20px) clamp(10px, 1.6vw, 18px);
+  }
+  .svc-info h3 {
+    font-size: clamp(26px, 2.6vw, 34px);
+    margin-bottom: 14px;
+  }
+  .svc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 16px;
+    padding: 0;
+    list-style: none;
+  }
+  .svc-tags li {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--tint);
+    color: var(--ink-2);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .svc-info p {
+    color: var(--ink-2);
+    max-width: 58ch;
+  }
+  .svc-link {
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 16px;
+    font-weight: 700;
+    color: var(--violet);
+  }
+  .svc-link span {
+    transition: transform 0.4s var(--boing);
+  }
+  .svc-link:hover span {
+    transform: translateX(5px);
+  }
+
+  /* animasi art hanya jalan di panel aktif */
+  .svc-panel:not(.active) .svc-art :global(*) {
+    animation-play-state: paused !important;
+  }
+
+  /* ---- art: aplikasi mobile ---- */
+  .art-phones {
+    position: absolute;
+    inset: 0;
+  }
+  .ph {
+    position: absolute;
+    top: 12%;
+    width: 30%;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 5px solid #fff;
+    box-shadow: 0 26px 46px -24px rgb(0 0 0 / 0.45);
+  }
+  .ph :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .ph-a {
+    left: 20%;
+    transform: rotate(-8deg);
+    animation: float 6s ease-in-out infinite;
+  }
+  .ph-b {
+    left: 48%;
+    top: 8%;
+    transform: rotate(6deg);
+    animation: float 6s 0.8s ease-in-out infinite;
+  }
+  .art-chip {
+    position: absolute;
+    left: 10%;
+    top: 58%;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #2e9e62;
+    color: #fff;
+    font-size: clamp(14px, 1.6vw, 20px);
+    font-weight: 850;
+    box-shadow: 0 14px 26px -14px rgb(0 0 0 / 0.4);
+    animation: pop-in 3.5s var(--boing) infinite;
+  }
+
+  /* ---- art: laptop ---- */
+  .art-laptop {
+    position: absolute;
+    left: 50%;
+    top: 13%;
+    width: 72%;
+    transform: translateX(-50%);
+    animation: float 7s ease-in-out infinite;
+  }
+  .al-lid {
+    padding: 2.6% 2.6% 3%;
+    border-radius: 14px 14px 4px 4px;
+    background: #1d1b26;
+    box-shadow: 0 30px 50px -28px rgb(0 0 0 / 0.5);
+  }
+  .al-view {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #fff;
+  }
+  .al-view :global(img) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+  }
+  .al-view :global(.al-b) {
+    animation: swap 8s ease-in-out infinite;
+  }
+  .al-base {
+    position: relative;
+    width: 112%;
+    margin-left: -6%;
+    aspect-ratio: 56 / 1;
+    border-radius: 0 0 12px 12px / 0 0 100% 100%;
+    background: linear-gradient(#e2deeb, #aaa4bc);
+  }
+
+  /* ---- art: game (level mini dari kotak-kotak ala logo) ---- */
+  .art-game {
+    position: absolute;
+    inset: 0;
+  }
+  .cloud {
+    position: absolute;
+    height: 9%;
+    border-radius: 999px;
+    background: #fff;
+    opacity: 0.9;
+    animation: drift 16s linear infinite;
+  }
+  .c1 {
+    top: 14%;
+    width: 18%;
+  }
+  .c2 {
+    top: 26%;
+    width: 12%;
+    animation-delay: -8s;
+  }
+  .plat {
+    position: absolute;
+    height: 9%;
+    border-radius: 12px;
+    border: 4px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box, var(--grad) border-box;
+  }
+  .p1 {
+    left: 8%;
+    bottom: 22%;
+    width: 22%;
+  }
+  .p2 {
+    left: 39%;
+    bottom: 40%;
+    width: 22%;
+  }
+  .p3 {
+    left: 70%;
+    bottom: 58%;
+    width: 22%;
+  }
+  .flag {
+    position: absolute;
+    left: 86%;
+    bottom: 67%;
+    width: 0.8%;
+    height: 14%;
+    border-radius: 2px;
+    background: #4a4566;
+  }
+  .flag::after {
+    content: "";
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 340%;
+    height: 42%;
+    background: var(--grad);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    transform-origin: left center;
+    animation: wave 1.4s ease-in-out infinite alternate;
+  }
+  @keyframes wave {
+    from { transform: scaleX(1) skewY(0deg); }
+    to { transform: scaleX(0.85) skewY(6deg); }
+  }
+  .ground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 12%;
+    background: repeating-linear-gradient(90deg, #7d55cc 0 34px, #8f63d3 34px 68px);
+  }
+  .coin {
+    position: absolute;
+    width: 5%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffe68a, #f5b700);
+    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.15);
+    animation: coin 4.8s ease-in-out infinite;
+  }
+  .k1 {
+    left: 16.5%;
+    bottom: 38%;
+  }
+  .k2 {
+    left: 47.5%;
+    bottom: 56%;
+    animation-delay: 0.9s;
+  }
+  .k3 {
+    left: 78.5%;
+    bottom: 74%;
+    animation-delay: 1.8s;
+  }
+  .hero {
+    position: absolute;
+    left: 15%;
+    bottom: 31%;
+    width: 9%;
+    aspect-ratio: 1;
+    border-radius: 28%;
+    background: var(--grad);
+    box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16%;
+    animation: hop-run 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  .hero i {
+    width: 14%;
+    height: 26%;
+    border-radius: 999px;
+    background: #fff;
+  }
+
+  /* ---- art: website ---- */
+  .art-browser {
+    position: absolute;
+    left: 50%;
+    top: 11%;
+    width: 74%;
+    transform: translateX(-50%) rotate(-1.5deg);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 30px 50px -28px rgb(0 0 0 / 0.45);
+  }
+  .bw-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 26px;
+    padding: 0 10px;
+    background: #f2f0f8;
+  }
+  .bw-bar i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d9d4e8;
+  }
+  .bw-url {
+    margin-left: 10px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--muted);
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bw-view {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+  }
+  .bw-view :global(img) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    animation: page-scroll 10s ease-in-out infinite;
+  }
+
+  /* ---- art: desain & motion ---- */
+  .art-design {
+    position: absolute;
+    inset: 0;
+  }
+  .ds-mark {
+    position: absolute;
+    left: 9%;
+    top: 14%;
+    width: 30%;
+  }
+  .ds-mark :global(svg) {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .ds-mark :global(.ol-s1),
+  .ds-mark :global(.ol-s2),
+  .ds-mark :global(.ol-s3) {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tumble 3.2s var(--boing) infinite;
+  }
+  .ds-mark :global(.ol-s2) {
+    animation-delay: 0.15s;
+  }
+  .ds-mark :global(.ol-s3) {
+    animation-delay: 0.3s;
+  }
+  .ds-swatches {
+    position: absolute;
+    left: 50%;
+    top: 16%;
+    display: flex;
+    gap: 3%;
+    width: 40%;
+  }
+  .ds-swatches i {
+    flex: 1;
+    aspect-ratio: 1;
+    border-radius: 28%;
+    box-shadow: 0 10px 18px -12px rgb(0 0 0 / 0.4);
+    animation: float 5s ease-in-out infinite;
+  }
+  .ds-swatches i:nth-child(1) {
+    background: var(--cyan);
+  }
+  .ds-swatches i:nth-child(2) {
+    background: var(--blue);
+    animation-delay: 0.3s;
+  }
+  .ds-swatches i:nth-child(3) {
+    background: var(--violet);
+    animation-delay: 0.6s;
+  }
+  .ds-swatches i:nth-child(4) {
+    background: var(--purple);
+    animation-delay: 0.9s;
+  }
+  .ds-type {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    display: flex;
+    align-items: baseline;
+    gap: 6%;
+    font-size: clamp(36px, 5vw, 64px);
+    line-height: 1;
+    color: var(--ink);
+  }
+  .ds-type b {
+    font-weight: 850;
+  }
+  .ds-type span {
+    font-weight: 250;
+  }
+  .ds-curve {
+    position: absolute;
+    left: 9%;
+    bottom: 7%;
+    width: 82%;
+    overflow: visible;
+  }
+  .ds-curve path {
+    stroke: var(--violet);
+    stroke-width: 2.5;
+    stroke-dasharray: 5 6;
+    opacity: 0.6;
+  }
+  @keyframes float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -10px; }
+  }
+  @keyframes pop-in {
+    0%, 12% { opacity: 0; scale: 0.5; }
+    22% { opacity: 1; scale: 1.08; }
+    28%, 86% { opacity: 1; scale: 1; }
+    94%, 100% { opacity: 0; scale: 0.8; }
+  }
+  @keyframes swap {
+    0%, 42% { opacity: 0; }
+    50%, 92% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes drift {
+    from { left: -20%; }
+    to { left: 110%; }
+  }
+  @keyframes page-scroll {
+    0%, 12% { transform: translateY(0); }
+    48%, 62% { transform: translateY(var(--shift, 0%)); }
+    94%, 100% { transform: translateY(0); }
+  }
+  @keyframes tumble {
+    0%, 55%, 100% { transform: none; }
+    25% { transform: translateY(-30px) rotate(90deg); }
+  }
+  }
+  /* karakter loncat dari platform ke platform lalu kembali */
+  @keyframes hop-run {
+    0%, 8% { left: 15%; bottom: 31%; }
+    20% { left: 31%; bottom: 58%; }
+    30%, 38% { left: 46%; bottom: 49%; }
+    50% { left: 62%; bottom: 76%; }
+    60%, 72% { left: 77%; bottom: 67%; }
+    86% { left: 46%; bottom: 80%; }
+    100% { left: 15%; bottom: 31%; }
+  }
+  @keyframes coin {
+    0%, 14% { transform: none; opacity: 1; }
+    20% { transform: translateY(-40%) scale(1.3); opacity: 0; }
+    80% { transform: none; opacity: 0; }
+    92%, 100% { transform: none; opacity: 1; }
+  }
+
+  /* ---- layar sempit: tab jadi deretan pill yang bisa digeser ---- */
+  @media (max-width: 860px) {
+    .svc-card {
+      grid-template-columns: 1fr;
+    }
+    .svc-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      padding: 4px 4px 6px;
+    }
+    .svc-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .svc-tab {
+      flex: none;
+      grid-template-columns: 34px auto;
+      gap: 10px;
+      min-height: 56px;
+      padding: 10px 16px 12px 10px;
+      border-radius: 18px;
+      background: var(--tint);
+      scroll-snap-align: start;
+    }
+    .svc-ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: #fff;
+    }
+    .svc-ico svg {
+      width: 19px;
+      height: 19px;
+    }
+    .svc-name {
+      font-size: 16px;
+      white-space: nowrap;
+    }
+    .svc-no,
+    .svc-foot {
+      display: none;
+    }
+    .svc-bar {
+      left: 12px;
+      right: 12px;
+      bottom: 5px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .svc-art :global(*) {
+      animation: none !important;
+    }
+    .svc-bar {
+      display: none;
+    }
+    .art-chip {
+      opacity: 1;
+    }
+  }
+</style>

@@ -10,6 +10,21 @@ price: Free
 icon: ../../../assets/apps/mimo.png
 color: "#FFE9D4"
 accent: "#E8701A"
+device: laptop
+screenshots:
+  - src: ../../../assets/shots/mimo-main.png
+    alt: The MIMO window on a Mac, ready to find a phone over Wi-Fi or USB
+card:
+  frames:
+    - ../../../assets/shots/mimo-main.png
+  chips:
+    - label: 120 fps
+    - label: USB or Wi-Fi
+      color: "#F59E0B"
+    - label: Audio included
+      color: "#10B981"
+    - label: Record to MP4
+      color: "#EF4444"
 order: 4
 ---
 

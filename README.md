@@ -35,6 +35,7 @@ Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) s
 - Ikon/screenshot taruh di `src/assets/apps/` dan `src/assets/shots/`, lalu rujuk dengan path relatif.
 - `portfolio: false` = tidak tampil di grid porto home. `free: false` = tidak tampil di Free Software. `draft: true` = disembunyikan.
 - Demo animasi di kartu porto: isi `card:` dengan `frames` (2+ screenshot, diputar berurutan; frame pertama dapat efek pindai kamera) dan `chips` (label yang meletup keluar dari HP). Contoh: `diet-mulai-besok.md`.
+- `device: laptop` = screenshot ditampilkan di mockup laptop (aplikasi desktop); default `phone`. Di home, kartu laptop dapat baris penuh, sisi laptopnya bergantian.
 - Link download: isi `links:` (yang `primary: true` jadi tombol utama). Tanpa link, tombol "Segera hadir" tampil.
 
 ## Yang masih perlu diisi
@@ -45,6 +46,8 @@ Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) s
 - Ikon ToiletGo (`src/assets/apps/toiletgo.svg`) buatan sementara dari maskot tetes air; aplikasinya masih pakai ikon default Android.
 
 ## Struktur
+
+- `src/components/Services.astro`: bagian Layanan di home (tab berganti otomatis + visual per layanan). Teks ID/EN ada di komponen itu.
 
 - `src/components/Intro.astro`: intro home (kotak meletup → tulisan → jendela logo membesar membuka halaman).
 - `src/assets/brand/overlight-logo.svg`: logo hasil tracing dari PNG asli, dipecah per bagian (`ol-s1/s2/s3/ring/over/light/tag`) untuk animasi. `overlight-mark.svg` = simbol tanpa teks (juga `public/favicon.svg`).

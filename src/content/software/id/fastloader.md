@@ -10,6 +10,22 @@ price: Gratis
 icon: ../../../assets/apps/fastloader.png
 color: "#EEF7CF"
 accent: "#5E8C00"
+device: laptop
+screenshots:
+  - src: ../../../assets/shots/fastloader-id-list.png
+    alt: Daftar unduhan FastLoader dengan progres tiap jalur
+  - src: ../../../assets/shots/fastloader-id-video.png
+    alt: Pilihan kualitas saat mengunduh video YouTube
+card:
+  frames:
+    - ../../../assets/shots/fastloader-id-list.png
+    - ../../../assets/shots/fastloader-id-video.png
+  chips:
+    - label: 8 jalur sekaligus
+    - label: Lanjut sendiri saat putus
+      color: "#84CC16"
+    - label: Video sampai 4K
+      color: "#EF4444"
 order: 2
 ---
 

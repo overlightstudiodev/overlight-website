@@ -10,6 +10,21 @@ price: Gratis
 icon: ../../../assets/apps/mimo.png
 color: "#FFE9D4"
 accent: "#E8701A"
+device: laptop
+screenshots:
+  - src: ../../../assets/shots/mimo-main.png
+    alt: Jendela MIMO di Mac, siap mencari HP lewat Wi-Fi atau USB
+card:
+  frames:
+    - ../../../assets/shots/mimo-main.png
+  chips:
+    - label: 120 fps
+    - label: USB atau Wi-Fi
+      color: "#F59E0B"
+    - label: Audio ikut
+      color: "#10B981"
+    - label: Rekam ke MP4
+      color: "#EF4444"
 order: 4
 ---
 

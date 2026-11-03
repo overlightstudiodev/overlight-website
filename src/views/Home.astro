@@ -3,6 +3,7 @@ import Base from "../layouts/Base.astro";
 import Intro from "../components/Intro.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import ArticleCard from "../components/ArticleCard.astro";
+import Services from "../components/Services.astro";
 import { getArticles, getSoftware } from "../lib/content";
 import { SITE } from "../consts";
 import { href, t, type Lang } from "../i18n";
@@ -14,22 +15,40 @@ const { lang } = Astro.props;
 const work = (await getSoftware(lang)).filter((e) => e.data.portfolio);
 const articles = (await getArticles(lang)).slice(0, 3);
 const accentBySlug = Object.fromEntries(work.map((w) => [w.id.split("/")[1], w.data.accent]));
-// Tiap baris berisi 2 kartu (7 + 5 kolom). Kartu dengan screenshot dapat slot lebar.
-const spans = work.map((w, i) => {
-  const pair = i % 2 === 0 ? [w, work[i + 1]] : [work[i - 1], w];
-  const visual = (e?: (typeof work)[number]) => !!e && (e.data.screenshots.length > 0 || !!e.data.card);
-  const wideFirst = !(visual(pair[1]) && !visual(pair[0]));
-  const isFirst = i % 2 === 0;
-  if (!pair[1]) return 12;
-  return isFirst === wideFirst ? 7 : 5;
-});
+// Tata letak porto: aplikasi mobile berpasangan (7 + 5 kolom), aplikasi desktop (mockup laptop)
+// dapat satu baris penuh, sisi laptopnya bergantian kiri/kanan.
+type Work = (typeof work)[number];
+const visual = (e?: Work) => !!e && (e.data.screenshots.length > 0 || !!e.data.card);
+const pairs: Work[][] = [];
+const wides: Work[] = [];
+let pending: Work | undefined;
+for (const w of work) {
+  if (w.data.device === "laptop" && visual(w)) wides.push(w);
+  else if (pending) {
+    pairs.push([pending, w]);
+    pending = undefined;
+  } else pending = w;
+}
+if (pending) pairs.push([pending]);
+const layout: { entry: Work; span: number; flip: boolean }[] = [];
+let flip = false;
+for (let r = 0; r < Math.max(pairs.length, wides.length); r++) {
+  const pair = pairs[r];
+  if (pair) {
+    // dua kartu bergambar: sama lebar supaya tingginya seimbang; kalau cuma satu yang bergambar, dia yang lebar
+    const both = visual(pair[0]) && visual(pair[1]);
+    const wideFirst = !(visual(pair[1]) && !visual(pair[0]));
+    if (pair.length === 1) layout.push({ entry: pair[0], span: 12, flip: false });
+    else pair.forEach((e, k) => layout.push({ entry: e, span: both ? 6 : (k === 0) === wideFirst ? 7 : 5, flip: false }));
+  }
+  const wide = wides[r];
+  if (wide) {
+    layout.push({ entry: wide, span: 12, flip });
+    flip = !flip;
+  }
+}
 const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
 
-const services = [
-  { key: "app", icon: "app" },
-  { key: "game", icon: "game" },
-  { key: "design", icon: "design" },
-] as const;
 ---
 
 <Base>
@@ -62,14 +81,17 @@ const services = [
   <section class="section work" id="porto">
     <div class="wrap">
       <div class="section-head" data-reveal>
-        <h2><span class="thin">{t(lang, "home.work.a")}</span> {t(lang, "home.work.b")}<span class="count">{String(work.length).padStart(2, "0")}</span></h2>
+        <div>
+          <p class="eyebrow sec-eyebrow"><span class="sec-num">01</span>{t(lang, "nav.work")}</p>
+          <h2><span class="thin">{t(lang, "home.work.a")}</span> {t(lang, "home.work.b")}<span class="count">{String(work.length).padStart(2, "0")}</span></h2>
+        </div>
         <p>{t(lang, "home.workLead")}</p>
       </div>
       <div class="bento">
         {
-          work.map((w, i) => (
-            <div class="bento-cell" style={`--span:${spans[i]}`}>
-              <ProjectCard entry={w} lang={lang} size="big" i={i % 2} />
+          layout.map((c, i) => (
+            <div class="bento-cell" style={`--span:${c.span}`}>
+              <ProjectCard entry={c.entry} lang={lang} size="big" i={i % 2} flip={c.flip} />
             </div>
           ))
         }
@@ -77,52 +99,17 @@ const services = [
     </div>
   </section>
 
-  <section class="section services">
-    <div class="wrap">
-      <div class="section-head" data-reveal>
-        <h2>{t(lang, "home.services")}</h2>
-      </div>
-      <div class="svc-grid">
-        {
-          services.map((s, i) => (
-            <div class="svc" data-reveal style={`--d:${i}`}>
-              <span class:list={["svc-icon", `svc-${s.icon}`]} aria-hidden="true">
-                {s.icon === "app" && (
-                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="5" width="22" height="38" rx="7" />
-                    <rect x="30" y="17" width="12" height="12" rx="4" />
-                  </svg>
-                )}
-                {s.icon === "game" && (
-                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="12" width="40" height="26" rx="10" />
-                    <path d="M15 20v10M10 25h10" />
-                    <rect x="29" y="19" width="5" height="5" rx="1.6" />
-                    <rect x="34" y="26" width="5" height="5" rx="1.6" />
-                  </svg>
-                )}
-                {s.icon === "design" && (
-                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="5" width="24" height="24" rx="7" />
-                    <circle cx="31" cy="31" r="12" />
-                  </svg>
-                )}
-              </span>
-              <h3>{t(lang, `home.svc.${s.key}.t`)}</h3>
-              <p>{t(lang, `home.svc.${s.key}.d`)}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-  </section>
+  <Services lang={lang} num="02" />
 
   {
     articles.length > 0 && (
       <section class="section latest">
         <div class="wrap">
           <div class="section-head" data-reveal>
-            <h2>{t(lang, "home.latest")}</h2>
+            <div>
+              <p class="eyebrow sec-eyebrow"><span class="sec-num">03</span>{t(lang, "nav.articles")}</p>
+              <h2>{t(lang, "home.latest")}</h2>
+            </div>
             <a href={href(lang, "/articles")} class="btn btn-ghost">
               {t(lang, "home.allArticles")} <span aria-hidden="true">→</span>
             </a>
@@ -322,51 +309,6 @@ const services = [
     display: grid;
   }
 
-  /* --- layanan --- */
-  .svc-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(14px, 1.8vw, 22px);
-  }
-  .svc {
-    padding: 30px;
-    border-radius: var(--r-lg);
-    background: var(--card);
-    box-shadow: inset 0 0 0 1px var(--line);
-  }
-  .svc h3 {
-    font-size: 26px;
-    margin: 22px 0 10px;
-  }
-  .svc p {
-    color: var(--ink-2);
-  }
-  .svc-icon {
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    background: var(--tint);
-    transition: transform 0.55s var(--boing);
-  }
-  .svc-icon svg {
-    width: 34px;
-    height: 34px;
-  }
-  .svc-app svg {
-    stroke: var(--cyan);
-  }
-  .svc-game svg {
-    stroke: var(--blue);
-  }
-  .svc-design svg {
-    stroke: var(--purple);
-  }
-  .svc:hover .svc-icon {
-    transform: rotate(-10deg) scale(1.08);
-  }
-
   /* --- artikel --- */
   .art-grid {
     display: grid;
@@ -472,7 +414,6 @@ const services = [
     .bento-cell {
       grid-column: span 12;
     }
-    .svc-grid,
     .art-grid {
       grid-template-columns: 1fr;
     }

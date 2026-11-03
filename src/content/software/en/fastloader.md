@@ -10,6 +10,22 @@ price: Free
 icon: ../../../assets/apps/fastloader.png
 color: "#EEF7CF"
 accent: "#5E8C00"
+device: laptop
+screenshots:
+  - src: ../../../assets/shots/fastloader-en-list.png
+    alt: FastLoader download list with progress for every connection
+  - src: ../../../assets/shots/fastloader-en-video.png
+    alt: Choosing a quality when downloading a YouTube video
+card:
+  frames:
+    - ../../../assets/shots/fastloader-en-list.png
+    - ../../../assets/shots/fastloader-en-video.png
+  chips:
+    - label: 8 connections at once
+    - label: Resumes on its own
+      color: "#84CC16"
+    - label: Video up to 4K
+      color: "#EF4444"
 order: 2
 ---
 

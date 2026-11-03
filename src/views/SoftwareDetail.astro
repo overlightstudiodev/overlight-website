@@ -17,6 +17,7 @@ const others = (await getSoftware(lang)).filter((e) => e.id !== entry.id).slice(
 const other = lang === "id" ? "en" : "id";
 const altPath = (await hasTranslation("software", entry.id)) ? href(other, `/software/${entrySlug(entry.id)}`) : href(other, "/software");
 const shots = d.screenshots;
+const isLaptop = d.device === "laptop";
 ---
 
 <Base title={d.title} description={d.description} altPath={altPath}>
@@ -57,7 +58,16 @@ const shots = d.screenshots;
         <div class="app-visual" data-reveal style="--d:2" aria-hidden="true">
           <span class="sq sq-1"></span><span class="sq sq-2"></span><span class="sq sq-3"></span>
           {
-            shots.length > 0 ? (
+            shots.length > 0 && isLaptop ? (
+              <div class="laptop">
+                <div class="laptop-lid">
+                  <div class="laptop-view">
+                    <Image src={shots[0].src} alt="" width={1100} />
+                  </div>
+                </div>
+                <div class="laptop-base" />
+              </div>
+            ) : shots.length > 0 ? (
               <div class="phone">
                 <Image src={shots[0].src} alt="" width={420} />
               </div>
@@ -72,10 +82,10 @@ const shots = d.screenshots;
 
       {
         shots.length > 1 && (
-          <div class="shots" data-reveal>
+          <div class:list={["shots", { "shots-wide": isLaptop }]} data-reveal>
             {shots.map((s, i) => (
               <figure class="shot" style={`--r:${(i - 1) * 3}deg`}>
-                <Image src={s.src} alt={s.alt} width={360} />
+                <Image src={s.src} alt={s.alt} width={isLaptop ? 1100 : 360} />
                 <figcaption>{s.alt}</figcaption>
               </figure>
             ))}
@@ -193,6 +203,48 @@ const shots = d.screenshots;
     width: 100%;
     height: auto;
   }
+  .laptop {
+    width: 88%;
+    margin-top: 12%;
+    animation: float 6s ease-in-out infinite;
+  }
+  .laptop-lid {
+    position: relative;
+    padding: 2.6% 2.6% 3%;
+    border-radius: 16px 16px 5px 5px;
+    background: #1d1b26;
+    box-shadow: 0 40px 70px -34px rgb(0 0 0 / 0.5);
+  }
+  .laptop-view {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #fff;
+  }
+  .laptop-view :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .laptop-base {
+    position: relative;
+    width: 112%;
+    margin-left: -6%;
+    aspect-ratio: 56 / 1;
+    border-radius: 0 0 14px 14px / 0 0 100% 100%;
+    background: linear-gradient(#e2deeb, #aaa4bc);
+  }
+  .laptop-base::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 16%;
+    height: 50%;
+    border-radius: 0 0 8px 8px;
+    background: #9d97b0;
+    transform: translateX(-50%);
+  }
   .sq {
     position: absolute;
     border-radius: 28%;
@@ -259,6 +311,13 @@ const shots = d.screenshots;
     border: 6px solid #fff;
     box-shadow: var(--shadow-up);
     background: var(--bg);
+  }
+  .shots-wide .shot {
+    flex-basis: min(620px, 84vw);
+  }
+  .shots-wide .shot :global(img) {
+    border-radius: 16px;
+    border-width: 5px;
   }
   .shot figcaption {
     margin-top: 14px;

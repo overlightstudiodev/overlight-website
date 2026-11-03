@@ -24,11 +24,14 @@ const software = defineCollection({
       links: z
         .array(z.object({ label: z.string(), url: z.url(), primary: z.boolean().default(false) }))
         .default([]),
+      // Bingkai perangkat untuk screenshot: HP (aplikasi mobile) atau laptop (aplikasi desktop)
+      device: z.enum(["phone", "laptop"]).default("phone"),
       screenshots: z.array(z.object({ src: image(), alt: z.string() })).default([]),
       // Demo animasi di kartu porto: beberapa layar bergantian + label yang "meletup" keluar dari HP.
       card: z
         .object({
-          frames: z.array(image()).min(2),
+          // 1 frame tinggi = layar bergulir pelan; 2+ frame = bergantian
+          frames: z.array(image()).min(1),
           chips: z.array(z.object({ label: z.string(), color: z.string().optional() })).default([]),
           // posisi foto di layar pertama (persen tinggi layar) untuk bingkai kamera & garis pindai
           scan: z.object({ top: z.number(), height: z.number() }).optional(),

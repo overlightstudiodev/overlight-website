@@ -8,17 +8,31 @@ interface Props {
   lang: Lang;
   size?: "big" | "wide" | "small";
   i?: number;
+  /** Kartu laptop: laptop di kiri, teks di kanan. */
+  flip?: boolean;
 }
-const { entry, lang, size = "small", i = 0 } = Astro.props;
+const { entry, lang, size = "small", i = 0, flip = false } = Astro.props;
 const d = entry.data;
 const shot = d.screenshots[0];
 const demo = size !== "small" ? d.card : undefined;
 const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n - 1 ? "frame-last" : "frame-mid");
+// Aplikasi desktop: screenshot di dalam mockup laptop (layar 16:10).
+const laptop = d.device === "laptop" && size !== "small";
+const lapFrames = laptop ? (demo?.frames ?? (shot ? [shot.src] : [])) : [];
+const first = lapFrames[0];
+// Satu screenshot yang lebih tinggi dari layar 16:10 digulir pelan dari atas ke bawah.
+const shift = lapFrames.length === 1 && first ? Math.max(0, (1 - 10 / 16 / (first.height / first.width)) * 100) : 0;
+const phoneDemo = laptop ? undefined : demo;
+const lapChips = laptop ? (demo?.chips ?? []) : [];
 ---
 
 <a
   href={href(lang, `/software/${entrySlug(entry.id)}`)}
-  class:list={["pcard", `pcard-${size}`, { "has-shot": (shot || demo) && size !== "small" }]}
+  class:list={[
+    "pcard",
+    `pcard-${size}`,
+    { "has-shot": !laptop && (shot || demo) && size !== "small", "has-laptop": lapFrames.length > 0, flip },
+  ]}
   style={`--bg:${d.color};--ac:${d.accent};--d:${i}`}
   data-reveal
 >
@@ -36,18 +50,18 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
     </div>
   </div>
   {
-    demo && (
-      <div class="pcard-demo" aria-hidden="true" style={demo.scan ? `--st:${demo.scan.top}%;--sh:${demo.scan.height}%` : undefined}>
+    phoneDemo && (
+      <div class="pcard-demo" aria-hidden="true" style={phoneDemo.scan ? `--st:${phoneDemo.scan.top}%;--sh:${phoneDemo.scan.height}%` : undefined}>
         <div class="demo-screen">
-          {demo.frames.map((f, k) => (
-            <Image src={f} alt="" width={480} class:list={["frame", frameClass(k, demo.frames.length)]} />
+          {phoneDemo.frames.map((f, k) => (
+            <Image src={f} alt="" width={480} class:list={["frame", frameClass(k, phoneDemo.frames.length)]} />
           ))}
           <span class="demo-focus" />
           <span class="demo-scan" />
           <span class="demo-flash" />
         </div>
         <div class="demo-pops">
-          {demo.chips.map((c, k) => (
+          {phoneDemo.chips.map((c, k) => (
             <span class:list={["demo-pop", { "demo-pop-main": k === 0 }]} style={`--k:${k};${c.color ? `--c:${c.color}` : ""}`}>
               {c.label}
             </span>
@@ -57,7 +71,34 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
     )
   }
   {
-    shot && !demo && size !== "small" && (
+    lapFrames.length > 0 && (
+      <div
+        class:list={["pcard-lap", { "lap-scroll": shift > 1, "lap-multi": lapFrames.length > 1 }]}
+        style={shift > 1 ? `--shift:-${shift.toFixed(2)}%` : undefined}
+        aria-hidden="true"
+      >
+        <div class="lap-lid">
+          <div class="lap-view">
+            {lapFrames.map((f, k) => (
+              <Image src={f} alt="" width={1100} class:list={["frame", frameClass(k, lapFrames.length)]} />
+            ))}
+          </div>
+        </div>
+        <div class="lap-base" />
+        {lapChips.length > 0 && (
+          <div class="demo-pops lap-pops">
+            {lapChips.map((c, k) => (
+              <span class:list={["demo-pop", { "demo-pop-main": k === 0 }]} style={`--k:${k};${c.color ? `--c:${c.color}` : ""}`}>
+                {c.label}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+  {
+    shot && !demo && !laptop && size !== "small" && (
       <div class="pcard-shot" aria-hidden="true">
         <Image src={shot.src} alt="" width={360} />
       </div>
@@ -201,8 +242,14 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   }
 
   .pcard-big {
+    --pad: clamp(20px, 2.4vw, 30px);
     min-height: 460px;
     container-type: inline-size;
+  }
+  .pcard-big > * {
+    /* lebar HP & jaraknya dari tepi kanan, dihitung dari lebar kartu (cqw) */
+    --pw: min(40cqw, 250px);
+    --pr: clamp(20px, 5cqw, 56px);
   }
 
   /* kotak-kotak ala logo, mengisi ruang kosong di kartu lebar */
@@ -271,14 +318,15 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   .pcard-big h3 {
     font-size: clamp(34px, 4.2vw, 56px);
   }
+  /* teks berhenti sebelum HP (+ ruang untuk kemiringan & label yang meletup) */
   .has-shot .pcard-body {
-    max-width: min(30ch, 52%);
+    max-width: min(30ch, calc(100cqw + var(--pad) - var(--pr) - var(--pw) - 48px));
   }
   .pcard-shot {
     position: absolute;
-    right: clamp(24px, 6%, 64px);
+    right: var(--pr);
     bottom: -38%;
-    width: min(42%, 260px);
+    width: var(--pw);
     border-radius: 30px;
     overflow: hidden;
     border: 6px solid #fff;
@@ -305,9 +353,9 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   /* ---- demo animasi di kartu (mis. Diet Mulai Besok: foto → analisis → hasil) ---- */
   .pcard-demo {
     position: absolute;
-    right: clamp(24px, 6%, 64px);
+    right: var(--pr);
     bottom: -38%;
-    width: min(42%, 260px);
+    width: var(--pw);
     transform: rotate(6deg);
     transition: transform 0.6s var(--boing);
   }
@@ -378,7 +426,7 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   }
   .demo-pops {
     position: absolute;
-    left: -24%;
+    left: -12%;
     top: 3%;
     display: grid;
     justify-items: start;
@@ -410,7 +458,7 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   .demo-pop-main {
     margin-left: 0;
     padding: 9px 18px;
-    background: #059669;
+    background: var(--c, var(--ac));
     color: #fff;
     font-size: 22px;
     font-weight: 850;
@@ -418,6 +466,141 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
   }
   .demo-pop-main::before {
     display: none;
+  }
+
+
+  /* ---- kartu aplikasi desktop: mockup laptop ---- */
+  .has-laptop {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "top lap" "body lap";
+    column-gap: clamp(24px, 4vw, 56px);
+    row-gap: 24px;
+    align-items: start;
+  }
+  .has-laptop.flip {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-areas: "lap top" "lap body";
+  }
+  .has-laptop .pcard-top {
+    grid-area: top;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 14px;
+  }
+  .has-laptop .pcard-body {
+    grid-area: body;
+    align-self: end;
+    max-width: 34ch;
+  }
+  .has-laptop .pcard-go {
+    display: none;
+  }
+  .pcard-lap {
+    grid-area: lap;
+    align-self: center;
+    position: relative;
+    /* alas laptop 112% dari layar: sisakan ruang supaya tidak terpotong tepi kartu */
+    width: 89%;
+    max-width: 600px;
+    justify-self: center;
+    margin: 18px 0 10px;
+    transition: transform 0.6s var(--boing);
+  }
+  .pcard:hover .pcard-lap {
+    transform: translateY(-8px) rotate(-0.6deg);
+  }
+  .lap-lid {
+    position: relative;
+    padding: 2.6% 2.6% 3%;
+    border-radius: 16px 16px 5px 5px;
+    background: #1d1b26;
+    box-shadow: 0 34px 60px -32px rgb(0 0 0 / 0.55);
+  }
+  .lap-lid::before {
+    content: "";
+    position: absolute;
+    top: 1%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #44404f;
+    transform: translateX(-50%);
+  }
+  .lap-view {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #fff;
+  }
+  .lap-view :global(.frame) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .lap-view :global(.frame-last) {
+    opacity: 0;
+  }
+  .lap-base {
+    position: relative;
+    width: 112%;
+    margin-left: -6%;
+    aspect-ratio: 56 / 1;
+    border-radius: 0 0 14px 14px / 0 0 100% 100%;
+    background: linear-gradient(#e2deeb, #aaa4bc);
+  }
+  .lap-base::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 16%;
+    height: 50%;
+    border-radius: 0 0 8px 8px;
+    background: #9d97b0;
+    transform: translateX(-50%);
+  }
+  .lap-pops {
+    left: -5%;
+    top: 10%;
+    transform: rotate(-4deg);
+  }
+  .flip .lap-pops {
+    left: auto;
+    right: -4%;
+    justify-items: end;
+    transform: rotate(4deg);
+  }
+  .flip .lap-pops .demo-pop {
+    margin-left: 0;
+    margin-right: calc(var(--k) * 10px);
+  }
+  /* 2 layar bergantian */
+  .lap-multi :global(.frame-first) {
+    animation: f-first2 9s linear infinite;
+  }
+  .lap-multi :global(.frame-last) {
+    animation: f-last 9s linear infinite;
+  }
+  /* 1 layar tinggi: bergulir pelan */
+  .lap-scroll :global(.frame-first) {
+    animation: lap-scroll 9s ease-in-out infinite;
+  }
+  @keyframes f-first2 {
+    0%, 43% { opacity: 1; }
+    45%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes lap-scroll {
+    0%, 10% { transform: translateY(0); }
+    42%, 64% { transform: translateY(var(--shift, 0%)); }
+    92%, 100% { transform: translateY(0); }
   }
 
   /* satu putaran 9 detik: foto + pindai (0–27%), menganalisa (29–43%), hasil + angka meletup (45–93%) */
@@ -444,10 +627,12 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
     animation-delay: calc(var(--k) * 0.16s);
   }
   /* animasi baru jalan saat kartu masuk layar (kelas .in dari reveal) */
-  .pcard .pcard-demo :global(*) {
+  .pcard .pcard-demo :global(*),
+  .pcard .pcard-lap :global(*) {
     animation-play-state: paused;
   }
-  .pcard:global(.in) .pcard-demo :global(*) {
+  .pcard:global(.in) .pcard-demo :global(*),
+  .pcard:global(.in) .pcard-lap :global(*) {
     animation-play-state: running;
   }
   @keyframes f-first {
@@ -489,8 +674,12 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
     94%, 100% { opacity: 0; transform: translateX(12px) scale(0.9); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .pcard-demo :global(*) {
+    .pcard-demo :global(*),
+    .pcard-lap :global(*) {
       animation: none !important;
+    }
+    .lap-view :global(.frame-last) {
+      opacity: 0;
     }
     .pcard-demo :global(.frame-first),
     .pcard-demo :global(.frame-mid) {
@@ -504,37 +693,85 @@ const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n 
     }
   }
 
+  @media (max-width: 900px) {
+    .has-laptop,
+    .has-laptop.flip {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      grid-template-areas: "top" "body" "lap";
+    }
+    .has-laptop .pcard-body {
+      max-width: none;
+    }
+    .lap-pops,
+    .flip .lap-pops {
+      left: 3%;
+      right: auto;
+      top: 7%;
+      justify-items: start;
+      transform: rotate(-4deg);
+    }
+    .flip .lap-pops .demo-pop {
+      margin-right: 0;
+      margin-left: calc(var(--k) * 10px);
+    }
+  }
   @media (max-width: 640px) {
     .pcard,
     .pcard-big {
       min-height: 0;
     }
-    .has-shot {
-      padding-bottom: 240px;
+    .demo-pop-main {
+      font-size: 18px;
     }
+    .demo-pop {
+      font-size: 13px;
+    }
+    .lap-pops {
+      gap: 6px;
+    }
+    .lap-pops .demo-pop {
+      margin-left: calc(var(--k) * 6px);
+      padding: 5px 10px 5px 8px;
+      font-size: 12px;
+    }
+    .lap-pops .demo-pop-main {
+      padding: 6px 13px;
+      font-size: 16px;
+    }
+    /* layar laptop kecil di HP: cukup label utama supaya UI tetap terlihat */
+    .lap-pops .demo-pop:not(.demo-pop-main) {
+      display: none;
+    }
+  }
+
+  /* Kartu sempit (HP, atau kolom kecil di desktop): HP turun ke bawah teks, terpotong rapi di bawah kartu. */
+  @container (max-width: 560px) {
     .has-shot .pcard-body {
       max-width: none;
     }
-    .pcard-shot {
-      right: 50%;
-      bottom: -120px;
-      width: 200px;
-      transform: translateX(50%) rotate(5deg);
-    }
-    .pcard:hover .pcard-shot {
-      transform: translateX(50%) rotate(2deg) translateY(-10px);
-    }
+    .pcard-shot,
     .pcard-demo {
-      right: 8%;
-      bottom: -150px;
-      width: 190px;
+      position: relative;
+      right: auto;
+      bottom: auto;
+      align-self: flex-end;
+      flex: none;
+      width: min(58%, 250px);
+      margin: 10px 5% -40% 0;
+      transform: rotate(4deg);
     }
-    .demo-pops {
-      left: -56%;
-      top: 10%;
+    .pcard-shot {
+      align-self: center;
+      margin-right: 0;
     }
-    .demo-pop-main {
-      font-size: 18px;
+    .pcard:hover .pcard-shot,
+    .pcard:hover .pcard-demo {
+      transform: rotate(1deg) translateY(-10px);
+    }
+    .pcard-demo .demo-pops {
+      left: -36%;
+      top: 9%;
     }
   }
 </style>
