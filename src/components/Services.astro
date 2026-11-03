@@ -183,7 +183,6 @@ const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
               </span>
               <span class="svc-name">{s.title}</span>
               <span class="svc-no" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-              <span class="svc-bar" aria-hidden="true"><i /></span>
             </button>
           ))
         }
@@ -597,28 +596,6 @@ const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
   }
   .svc-tab.active .svc-no {
     color: rgb(255 255 255 / 0.8);
-  }
-  .svc-bar {
-    position: absolute;
-    left: 18px;
-    right: 18px;
-    bottom: 9px;
-    height: 3px;
-    border-radius: 3px;
-    background: rgb(255 255 255 / 0.28);
-    opacity: 0;
-    overflow: hidden;
-  }
-  .svc-bar i {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: #fff;
-    transform: scaleX(var(--p));
-    transform-origin: left;
-  }
-  .svc-tab.active .svc-bar {
-    opacity: 1;
   }
 
   /* ---- panel ---- */
@@ -1449,19 +1426,11 @@ const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
     .svc-foot {
       display: none;
     }
-    .svc-bar {
-      left: 12px;
-      right: 12px;
-      bottom: 5px;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .svc-art :global(*) {
       animation: none !important;
-    }
-    .svc-bar {
-      display: none;
     }
     .art-chip {
       opacity: 1;
