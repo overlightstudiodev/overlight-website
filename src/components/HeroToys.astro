@@ -46,7 +46,7 @@ const c = {
 
 <div class="toys" data-toys aria-hidden="true">
   <!-- GAME -->
-  <span class="toy toy-1" data-depth="1.6" data-role="game">
+  <span class="toy toy-1" data-depth="1.6" data-role="game" data-bubble-at="above">
     <span class="hole g-hole">
       <span class="g-sky"></span>
       <span class="g-cloud"></span>
@@ -62,7 +62,7 @@ const c = {
   </span>
 
   <!-- WEB -->
-  <span class="toy toy-2" data-depth="1" data-role="web">
+  <span class="toy toy-2" data-depth="1" data-role="web" data-bubble-at="above">
     <span class="hole w-hole">
       <span class="w-bar"></span>
       <span class="w-hd"></span>
@@ -77,7 +77,7 @@ const c = {
   </span>
 
   <!-- APP: HP muncul dari kotak, kode diketik jadi UI, tombol diketuk, rilis -->
-  <span class="toy toy-3" data-depth="2.2" data-role="app">
+  <span class="toy toy-3" data-depth="2.2" data-role="app" data-bubble-at="below">
     <span class="a-phone">
       <span class="ap-screen">
         <span class="ap-code">
@@ -98,7 +98,7 @@ const c = {
   </span>
 
   <!-- MOTION -->
-  <span class="toy toy-4" data-depth="0.6" data-role="motion">
+  <span class="toy toy-4" data-depth="0.6" data-role="motion" data-bubble-at="below">
     <span class="m-ghost m3"></span>
     <span class="m-ghost m2"></span>
     <span class="m-ghost m1"></span>
@@ -140,7 +140,16 @@ const c = {
       bubble.textContent = list[k];
       bubble.dataset.role = role;
       const box = toys.getBoundingClientRect();
+      // area visual = kotak + bagian yang menonjol (koin, timeline, HP yang keluar, dll.)
       const r = el.getBoundingClientRect();
+      let topEdge = r.top;
+      let bottomEdge = r.bottom;
+      el.querySelectorAll<HTMLElement>("*").forEach((c) => {
+        const cr = c.getBoundingClientRect();
+        if (!cr.width || !cr.height || getComputedStyle(c).display === "none") return;
+        topEdge = Math.min(topEdge, cr.top);
+        bottomEdge = Math.max(bottomEdge, cr.bottom);
+      });
       bubble.classList.remove("show", "below");
       bubble.style.left = "0px";
       bubble.style.top = "0px";
@@ -148,17 +157,21 @@ const c = {
       const bh = bubble.offsetHeight;
       const cx = r.left + r.width / 2 - box.left;
       const left = Math.min(Math.max(cx - bw / 2, 0), box.width - bw);
-      let top = r.top - box.top - bh - 14;
-      const below = top < -24;
-      if (below) top = r.bottom - box.top + 14;
+      // dua kotak atas: gelembung di atas visual; dua kotak bawah: di bawah visual
+      const below = el.dataset.bubbleAt === "below";
+      const top = below ? bottomEdge - box.top + 12 : topEdge - box.top - bh - 12;
       bubble.classList.toggle("below", below);
       bubble.style.left = `${left}px`;
       bubble.style.top = `${top}px`;
       bubble.style.setProperty("--tail", `${cx - left}px`);
       void bubble.offsetWidth;
       bubble.classList.add("show");
+      toys.classList.add("bubbling");
       clearTimeout(bubbleTimer);
-      bubbleTimer = window.setTimeout(() => bubble.classList.remove("show"), 2300);
+      bubbleTimer = window.setTimeout(() => {
+        bubble.classList.remove("show");
+        toys.classList.remove("bubbling");
+      }, 2300);
     };
 
     /** Semburan partikel sesuai peran (koin, tag kode, ikon app, berlian keyframe). */
@@ -1068,6 +1081,13 @@ const c = {
     translate: -50% 55%;
     rotate: 225deg;
   }
+  /* keterangan peran disembunyikan sebentar selama gelembung tampil (supaya tidak bertabrakan) */
+  .toys-cap {
+    transition: opacity 0.25s ease;
+  }
+  .bubbling .toys-cap {
+    opacity: 0;
+  }
   .toy-bubble[data-role="game"] { --c: #6c90d6; }
   .toy-bubble[data-role="web"] { --c: #7d55cc; }
   .toy-bubble[data-role="app"] { --c: #2e9e62; }
@@ -1133,7 +1153,7 @@ const c = {
     .toys {
       width: min(100%, 420px);
       height: 350px;
-      margin: 8px auto 0;
+      margin: 64px auto 0;
     }
     /* tinggi wadah di HP lebih besar dari lebarnya: jaga jarak kotak kiri atas & kotak kecil */
     .toy-3 {
