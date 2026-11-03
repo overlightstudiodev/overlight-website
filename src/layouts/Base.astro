@@ -45,8 +45,8 @@ const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 8
       document.documentElement.classList.add("js");
     </script>
     <!--
-      GitHub Pages menyuruh browser menyimpan HTML 10 menit (Chrome mematuhinya ketat).
-      Cek version.json tanpa cache; kalau ada versi lebih baru, muat ulang sekali.
+      GitHub Pages (cadangan) menyuruh browser menyimpan HTML 10 menit, dan tab yang lama terbuka
+      bisa memakai versi lama. Cek version.json tanpa cache; kalau ada versi lebih baru, muat ulang sekali.
     -->
     <script is:inline define:vars={{ buildId: __BUILD_ID__, versionUrl: withBase("/version.json") }}>
       fetch(versionUrl, { cache: "no-store" })

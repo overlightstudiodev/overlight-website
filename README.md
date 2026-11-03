@@ -15,11 +15,25 @@ npm run check    # cek tipe
 
 Intro logo diputar sekali per sesi browser. Untuk memutar ulang, buka `http://localhost:4321/?intro`.
 
-## Online (sementara)
+## Online
 
-https://overlightstudiodev.github.io/overlight-website/
+Cloudflare Pages: https://overlight-website.pages.dev/
 
-Repo: https://github.com/overlightstudiodev/overlight-website. Setiap push ke `main` otomatis di-build dan di-deploy oleh `.github/workflows/deploy.yml` (GitHub Pages, sumber "GitHub Actions"). Workflow mengisi `SITE_URL` dan `BASE_PATH` (`/overlight-website`); semua link internal memakai `href()` / `withBase()` di `src/i18n.ts` supaya tetap benar di sub-folder. Saat pindah ke domain sendiri: hapus `BASE_PATH` (jadi `/`) dan isi `SITE_URL` dengan domain baru.
+Repo: https://github.com/overlightstudiodev/overlight-website. Proyek Cloudflare Pages `overlight-website` terhubung ke branch `main`: setiap push memicu build dan deployment otomatis. Preset framework: Astro, build command: `npm run build`, output directory: `dist`, root directory: root repository.
+
+Variabel build di Cloudflare untuk Production dan Preview:
+
+| Variabel | Nilai |
+|---|---|
+| `SITE_URL` | `https://overlight-website.pages.dev` |
+| `BASE_PATH` | `/` |
+| `NODE_VERSION` | `24` |
+
+Domain sendiri belum ditetapkan. Setelah domain dimiliki dan ditambahkan di Cloudflare Pages, ubah `SITE_URL` ke URL HTTPS domain tersebut lalu deploy ulang. `BASE_PATH` tetap `/`. Semua tautan internal memakai helper `href()` / `withBase()` di `src/i18n.ts`.
+
+Alamat GitHub Pages lama tetap tersedia sebagai cadangan: https://overlightstudiodev.github.io/overlight-website/. Workflow `.github/workflows/deploy.yml` masih menerbitkan versi dengan `SITE_URL` GitHub dan `BASE_PATH=/overlight-website`, terpisah dari build Cloudflare.
+
+Cache: `public/_headers` membuat file `/_astro/*` (nama ber-hash) di-cache 1 tahun di Cloudflare; HTML tetap selalu dicek ulang. `version.json` berisi 7 digit commit (`CF_PAGES_COMMIT_SHA` / `GITHUB_SHA`), berguna untuk mengecek versi yang sedang live.
 
 Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) sengaja tidak di-upload (lihat `.gitignore`).
 
@@ -41,7 +55,7 @@ Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) s
 ## Yang masih perlu diisi
 
 - `src/consts.ts`: Instagram, GitHub (kosong = disembunyikan). Email & WhatsApp sudah diisi; link dibuat oleh `gmailLink()` (buka Gmail compose) dan `waLink()` (buka chat wa.me).
-- `astro.config.mjs`: `site` = domain asli (sekarang placeholder `overlight.pages.dev`).
+- Domain resmi: setelah dipilih dan dimiliki, pasang di Cloudflare Pages dan perbarui variabel build `SITE_URL`. Nilai di dashboard mengesampingkan fallback lokal `https://overlight-website.pages.dev` pada `astro.config.mjs`.
 - Link download FastLoader, ToiletGo, MIMO saat sudah rilis publik.
 - Ikon ToiletGo (`src/assets/apps/toiletgo.svg`) buatan sementara dari maskot tetes air; aplikasinya masih pakai ikon default Android.
 

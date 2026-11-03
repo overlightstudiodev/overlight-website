@@ -1,0 +1,4 @@
+# Cloudflare Pages. File di /_astro/ bernama hash (berubah tiap isi berubah), aman di-cache 1 tahun.
+# HTML tetap memakai bawaan Cloudflare (max-age=0, selalu dicek ulang).
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
