@@ -16,7 +16,7 @@ const c = {
     roles: {
       game: ["Game developer", "karakter, level, dan dunia yang seru"],
       web: ["Web developer", "website cepat yang merakit dirinya sendiri"],
-      app: ["App developer", "aplikasi yang enak diketuk"],
+      app: ["App developer", "dari kode sampai rilis di Play Store"],
       motion: ["Motion graphic", "gerak yang hidup, frame demi frame"],
     },
   },
@@ -25,7 +25,7 @@ const c = {
     roles: {
       game: ["Game developer", "characters, levels, and fun worlds"],
       web: ["Web developer", "fast sites that build themselves"],
-      app: ["App developer", "apps that feel great to tap"],
+      app: ["App developer", "from code to a Play Store release"],
       motion: ["Motion graphic", "lively motion, frame by frame"],
     },
   },
@@ -64,15 +64,25 @@ const c = {
     </span>
   </span>
 
-  <!-- APP -->
+  <!-- APP: HP muncul dari kotak, kode diketik jadi UI, tombol diketuk, rilis -->
   <span class="toy toy-3" data-depth="2.2" data-role="app">
-    <span class="hole a-hole">
-      <span class="a-notch"></span>
-      <span class="a-ic a1"></span><span class="a-ic a2"></span><span class="a-ic a3"></span>
-      <span class="a-ic a4"></span><span class="a-ic a5"></span><span class="a-ic a6"></span>
-      <span class="a-badge"></span>
-      <span class="a-tap"></span>
+    <span class="a-phone">
+      <span class="ap-screen">
+        <span class="ap-code">
+          <i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
+        </span>
+        <span class="ap-ui">
+          <i class="u-bar"></i>
+          <i class="u-img"></i>
+          <i class="u-t1"></i>
+          <i class="u-t2"></i>
+          <i class="u-btn"><b></b></i>
+        </span>
+        <span class="ap-tap"></span>
+      </span>
+      <span class="ap-notch"></span>
     </span>
+    <span class="a-release"><b>★★★★★</b> v1.0</span>
   </span>
 
   <!-- MOTION -->
@@ -596,96 +606,203 @@ const c = {
     95%, 100% { opacity: 0; transform: scale(1.8); }
   }
 
-  /* ================= APP: ikon aplikasi muncul, satu dibuka ================= */
-  .a-notch {
-    left: 35%;
-    top: 7%;
+  /* ================= APP: HP keluar dari kotak, kode → UI → ketuk → rilis ================= */
+  .a-phone {
+    left: 6%;
+    bottom: -6%;
+    width: 88%;
+    height: 172%;
+    padding: 7% 6%;
+    border-radius: 22% / 13%;
+    background: #1d1b26;
+    box-shadow: 0 18px 30px -14px rgb(27 24 48 / 0.55);
+    opacity: 0;
+    transform: translateY(30%) scale(0.5);
+    transform-origin: 50% 100%;
+    transition: transform 0.55s var(--boing), opacity 0.25s ease;
+    z-index: 3;
+  }
+  .ap-notch {
+    position: absolute;
+    left: 50%;
+    top: 3.2%;
     width: 30%;
-    height: 7%;
+    height: 3.4%;
     border-radius: 999px;
-    background: #1b1830;
+    background: #000;
+    translate: -50% 0;
+  }
+  .ap-screen {
+    position: absolute;
+    inset: 4.5%;
+    border-radius: 18% / 11%;
+    overflow: hidden;
+    background: #24212f;
+  }
+  .ap-screen > span {
+    position: absolute;
+    inset: 0;
+  }
+  .ap-screen i,
+  .ap-screen b {
+    position: absolute;
+    display: block;
+  }
+  /* 1) kode diketik */
+  .ap-code i {
+    left: 12%;
+    height: 5%;
+    border-radius: 3px;
+    transform-origin: left;
     transform: scaleX(0);
-    transition: transform 0.4s var(--boing);
   }
-  .a-ic {
+  .ap-code .c1 { top: 18%; width: 46%; background: #a660d8; }
+  .ap-code .c2 { top: 28%; left: 22%; width: 56%; background: #74bcde; }
+  .ap-code .c3 { top: 38%; left: 22%; width: 38%; background: #f59e0b; }
+  .ap-code .c4 { top: 48%; width: 30%; background: #a660d8; }
+  /* 2) jadi UI aplikasi */
+  .ap-ui {
+    background: #fbfaff;
+    opacity: 0;
+  }
+  .ap-ui i {
+    left: 10%;
+    right: 10%;
+    border-radius: 4px;
+    opacity: 0;
+    transform: translateY(30%);
+  }
+  .u-bar { top: 9%; height: 8%; background: var(--blue); }
+  .u-img { top: 22%; height: 30%; border-radius: 8px !important; background: linear-gradient(135deg, var(--cyan), var(--violet)); }
+  .u-t1 { top: 57%; height: 5%; right: 28% !important; background: #d9d3ea; }
+  .u-t2 { top: 65%; height: 5%; right: 44% !important; background: #e6e1f3; }
+  .u-btn {
+    top: 76%;
+    height: 12%;
+    border-radius: 999px !important;
+    background: #2e9e62;
+  }
+  .u-btn b {
+    left: 50%;
+    top: 50%;
     width: 22%;
-    aspect-ratio: 1;
-    border-radius: 30%;
-    opacity: 0;
-    transform: scale(0.2);
+    height: 42%;
+    border-right: 2.5px solid #fff;
+    border-bottom: 2.5px solid #fff;
+    translate: -50% -65%;
+    rotate: 45deg;
+    scale: 0;
   }
-  .a1 { left: 13%; top: 26%; background: #74bcde; }
-  .a2 { left: 39%; top: 26%; background: #6c86d6; }
-  .a3 { left: 65%; top: 26%; background: #7d55cc; }
-  .a4 { left: 13%; top: 56%; background: #2e9e62; }
-  .a5 { left: 39%; top: 56%; background: #a660d8; }
-  .a6 { left: 65%; top: 56%; background: #e8701a; }
-  .a-badge {
-    left: 28%;
-    top: 20%;
-    width: 12%;
+  /* 3) jari mengetuk tombol */
+  .ap-tap {
+    left: 50%;
+    top: 82%;
+    width: 26%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: #ff4d6d;
-    box-shadow: 0 0 0 2px #fff;
-    opacity: 0;
-    transform: scale(0);
-  }
-  .a-tap {
-    left: 42%;
-    top: 59%;
-    width: 16%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: rgb(27 24 48 / 0.25);
+    translate: -50% -50%;
+    background: rgb(255 255 255 / 0.55);
+    box-shadow: 0 0 0 2px rgb(27 24 48 / 0.35);
     opacity: 0;
   }
+  /* 4) lencana rilis */
+  .a-release {
+    left: 104%;
+    top: 4%;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 10px 20px -12px rgb(27 24 48 / 0.45);
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--ink);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-20%) scale(0.5);
+    transform-origin: left center;
+    z-index: 3;
+  }
+  .a-release b {
+    color: #f5b700;
+    letter-spacing: -0.05em;
+  }
+
   .toy-3.is-on {
     rotate: 0deg;
   }
-  .toy-3.is-on .a-notch {
+  .toy-3.is-on .a-phone {
+    opacity: 1;
     transform: none;
+    animation: ap-wiggle 4s var(--boing) infinite;
   }
-  .toy-3.is-on .a-ic {
-    animation: a-ic 3.4s var(--boing) infinite;
-    animation-delay: calc(var(--k, 0) * 0.07s);
+  .toy-3.is-on .ap-code i {
+    animation: ap-code 4s ease-out infinite;
   }
-  .a2 { --k: 1; }
-  .a3 { --k: 2; }
-  .a4 { --k: 3; }
-  .a5 { --k: 4; }
-  .a6 { --k: 5; }
-  .toy-3.is-on .a5 {
-    animation-name: a-open;
+  .toy-3.is-on .ap-code .c2 { animation-delay: 0.12s; }
+  .toy-3.is-on .ap-code .c3 { animation-delay: 0.24s; }
+  .toy-3.is-on .ap-code .c4 { animation-delay: 0.36s; }
+  .toy-3.is-on .ap-ui {
+    animation: ap-ui 4s ease infinite;
   }
-  .toy-3.is-on .a-badge {
-    animation: a-badge 3.4s var(--boing) infinite;
+  .toy-3.is-on .ap-ui i {
+    animation: ap-ui-in 4s var(--boing) infinite;
   }
-  .toy-3.is-on .a-tap {
-    animation: a-tap 3.4s ease-out infinite;
+  .toy-3.is-on .u-img { animation-delay: 0.08s; }
+  .toy-3.is-on .u-t1 { animation-delay: 0.16s; }
+  .toy-3.is-on .u-t2 { animation-delay: 0.22s; }
+  .toy-3.is-on .u-btn { animation-name: ap-btn; animation-delay: 0.3s; }
+  .toy-3.is-on .u-btn b {
+    animation: ap-check 4s var(--boing) infinite;
   }
-  @keyframes a-ic {
-    0% { opacity: 0; transform: scale(0.2); }
-    12%, 88% { opacity: 1; transform: none; }
-    100% { opacity: 0; transform: scale(0.4); }
+  .toy-3.is-on .ap-tap {
+    animation: ap-tap 4s ease-out infinite;
   }
-  /* ikon ungu diketuk lalu "membuka" memenuhi layar */
-  @keyframes a-open {
-    0% { opacity: 0; transform: scale(0.2); }
-    12%, 50% { opacity: 1; transform: none; border-radius: 30%; }
-    55% { transform: scale(0.85); }
-    72%, 86% { opacity: 1; transform: translate(-130%, -120%) scale(4.2); border-radius: 14%; }
-    100% { opacity: 0; transform: translate(-130%, -120%) scale(4.2); }
+  .toy-3.is-on .a-release {
+    animation: ap-release 4s var(--boing) infinite;
   }
-  @keyframes a-badge {
-    0%, 22% { opacity: 0; transform: scale(0); }
-    30%, 50% { opacity: 1; transform: scale(1); }
-    56%, 100% { opacity: 0; transform: scale(0); }
+  @keyframes ap-wiggle {
+    0%, 66%, 100% { rotate: 0deg; }
+    70% { rotate: -5deg; }
+    74% { rotate: 4deg; }
+    78% { rotate: 0deg; }
   }
-  @keyframes a-tap {
-    0%, 48% { opacity: 0; transform: scale(0.4); }
-    52% { opacity: 1; transform: scale(1); }
-    64%, 100% { opacity: 0; transform: scale(2.2); }
+  @keyframes ap-code {
+    0%, 4% { transform: scaleX(0); }
+    16%, 100% { transform: scaleX(1); }
+  }
+  @keyframes ap-ui {
+    0%, 28% { opacity: 0; }
+    32%, 94% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes ap-ui-in {
+    0%, 30% { opacity: 0; transform: translateY(40%); }
+    40%, 94% { opacity: 1; transform: none; }
+    100% { opacity: 0; }
+  }
+  @keyframes ap-btn {
+    0%, 30% { opacity: 0; transform: translateY(40%); }
+    40%, 54% { opacity: 1; transform: none; }
+    57% { transform: scale(0.88); }
+    62%, 94% { opacity: 1; transform: none; background: #2e9e62; }
+    100% { opacity: 0; }
+  }
+  @keyframes ap-check {
+    0%, 58% { scale: 0; }
+    66%, 94% { scale: 1; }
+    100% { scale: 0; }
+  }
+  @keyframes ap-tap {
+    0%, 46% { opacity: 0; transform: translate(60%, 80%) scale(1); }
+    52% { opacity: 1; transform: none; }
+    56% { opacity: 1; transform: scale(0.75); }
+    64%, 100% { opacity: 0; transform: scale(1.9); }
+  }
+  @keyframes ap-release {
+    0%, 66% { opacity: 0; transform: translateX(-20%) scale(0.5); }
+    72% { opacity: 1; transform: translateX(4%) scale(1.08); }
+    76%, 94% { opacity: 1; transform: none; }
+    100% { opacity: 0; transform: translateX(10%) scale(0.9); }
   }
 
   /* ================= MOTION: squash & stretch + jejak + timeline ================= */

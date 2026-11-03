@@ -1,5 +1,6 @@
 ---
 import BrandMark from "./BrandMark.astro";
+import { SITE } from "../consts";
 import { getLang, href, swapLangPath, t } from "../i18n";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 const lang = getLang(Astro.url);
 const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 const alt = Astro.props.altPath ?? swapLangPath(Astro.url);
+const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
 
 const links = [
   { label: t(lang, "nav.work"), to: href(lang, "/#porto"), match: href(lang, "/") },
@@ -16,21 +18,30 @@ const links = [
   { label: t(lang, "nav.articles"), to: href(lang, "/articles"), match: href(lang, "/articles") },
   { label: t(lang, "nav.about"), to: href(lang, "/about"), match: href(lang, "/about") },
 ];
+const home = href(lang, "/").replace(/\/$/, "") || "/";
 const isActive = (m: string) => {
   const mm = m.replace(/\/$/, "") || "/";
-  const home = href(lang, "/").replace(/\/$/, "") || "/";
   if (mm === home) return false;
   return path === mm || path.startsWith(mm + "/");
 };
 ---
 
 <header class="nav" data-nav>
+  <!-- blur bertingkat: konten yang lewat di belakang header makin buram ke arah atas -->
+  <div class="nav-blur" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
   <div class="wrap nav-inner">
     <a href={href(lang, "/")} class="nav-brand" aria-label="Overlight home">
       <BrandMark size={38} mark={false} />
     </a>
 
-    <nav class="nav-links" aria-label="Utama">
+    <nav class="nav-links glass" aria-label="Utama">
+      <a href={href(lang, "/")} class:list={["nav-link", "nav-home", { active: path === home }]} aria-label={t(lang, "nav.home")}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 10.5 12 4l8.5 6.5" />
+          <path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5h4v5h3.5a1 1 0 0 0 1-1V9.5" />
+        </svg>
+      </a>
       {
         links.map((l) => (
           <a href={l.to} class:list={["nav-link", { active: isActive(l.match) }]} aria-current={isActive(l.match) ? "page" : undefined}>
@@ -41,11 +52,15 @@ const isActive = (m: string) => {
     </nav>
 
     <div class="nav-end">
-      <a href={alt} class="lang" hreflang={lang === "id" ? "en" : "id"} aria-label={t(lang, "nav.switchLabel")}>
+      <a href={contact} class="nav-cta glass">
+        <span class="nav-dot" aria-hidden="true"></span>
+        {t(lang, "nav.cta")}
+      </a>
+      <a href={alt} class="lang glass" hreflang={lang === "id" ? "en" : "id"} aria-label={t(lang, "nav.switchLabel")}>
         <span class:list={{ on: lang === "id" }}>ID</span>
         <span class:list={{ on: lang === "en" }}>EN</span>
       </a>
-      <button class="burger" type="button" aria-expanded="false" aria-controls="nav-sheet" aria-label={t(lang, "nav.menu")} data-burger>
+      <button class="burger glass" type="button" aria-expanded="false" aria-controls="nav-sheet" aria-label={t(lang, "nav.menu")} data-burger>
         <i></i><i></i>
       </button>
     </div>
@@ -59,6 +74,10 @@ const isActive = (m: string) => {
         </a>
       ))
     }
+    <a href={contact} class="sheet-link sheet-cta" style={`--i:${links.length}`}>
+      <span class="nav-dot" aria-hidden="true"></span>
+      {t(lang, "nav.cta")}
+    </a>
   </div>
 </header>
 
@@ -75,126 +94,181 @@ const isActive = (m: string) => {
   addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
 
   const onScroll = () => nav?.classList.toggle("scrolled", scrollY > 8);
-  // kilau kaca mengikuti posisi mouse di header
-  nav?.addEventListener(
-    "pointermove",
-    (e) => {
-      const r = nav.getBoundingClientRect();
-      nav.style.setProperty("--mx", `${((e.clientX - r.left) / r.width) * 100}%`);
-    },
-    { passive: true },
-  );
   addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 </script>
 
 <style>
   .nav {
-    --mx: 30%;
     position: sticky;
     top: 0;
     z-index: 50;
   }
+
+  /* ---- blur bertingkat di belakang header (tanpa kapsul) ---- */
+  .nav-blur {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: calc(100% + 34px);
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    background: linear-gradient(to bottom, rgb(251 250 255 / 0.72), rgb(251 250 255 / 0.35) 55%, rgb(251 250 255 / 0));
+  }
+  .nav-blur i {
+    position: absolute;
+    inset: 0;
+  }
+  .nav-blur i:nth-child(1) {
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    mask: linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%);
+  }
+  .nav-blur i:nth-child(2) {
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    mask: linear-gradient(to bottom, #000 0%, #000 55%, transparent 88%);
+  }
+  .nav-blur i:nth-child(3) {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    mask: linear-gradient(to bottom, #000 0%, #000 42%, transparent 74%);
+  }
+  .nav-blur i:nth-child(4) {
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    mask: linear-gradient(to bottom, #000 0%, #000 28%, transparent 60%);
+  }
+  .nav-blur i:nth-child(5) {
+    backdrop-filter: blur(22px) saturate(1.6);
+    -webkit-backdrop-filter: blur(22px) saturate(1.6);
+    mask: linear-gradient(to bottom, #000 0%, transparent 44%);
+  }
+  .nav.scrolled .nav-blur,
+  .nav.open .nav-blur {
+    opacity: 1;
+  }
+
   .nav-inner {
     position: relative;
-    isolation: isolate;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    height: 72px;
-  }
-  /* Liquid glass: kapsul kaca melayang yang muncul saat halaman digulir */
-  .nav-inner::before,
-  .nav-inner::after {
-    content: "";
-    position: absolute;
-    inset: 8px calc(var(--gutter) - 14px);
-    z-index: -1;
-    border-radius: 24px;
-    opacity: 0;
-    transform: translateY(-6px) scale(0.985);
-    transition: opacity 0.35s ease, transform 0.5s var(--boing);
-    pointer-events: none;
-  }
-  .nav-inner::before {
-    background:
-      radial-gradient(140px 70px at var(--mx) 0%, rgb(255 255 255 / 0.75), transparent 70%),
-      linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.36));
-    backdrop-filter: blur(22px) saturate(1.9) brightness(1.04);
-    -webkit-backdrop-filter: blur(22px) saturate(1.9) brightness(1.04);
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.9),
-      inset 0 -1px 0 rgb(125 85 204 / 0.1),
-      0 14px 34px -16px rgb(76 52 160 / 0.32),
-      0 2px 6px -2px rgb(76 52 160 / 0.08);
-  }
-  /* tepi kaca: garis tipis bergradasi putih ke biru-ungu muda */
-  .nav-inner::after {
-    padding: 1px;
-    background: linear-gradient(135deg, rgb(255 255 255 / 0.95), rgb(116 188 222 / 0.35) 40%, rgb(166 96 216 / 0.35) 75%, rgb(255 255 255 / 0.8));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  }
-  .nav.scrolled .nav-inner::before,
-  .nav.scrolled .nav-inner::after,
-  .nav.open .nav-inner::before,
-  .nav.open .nav-inner::after {
-    opacity: 1;
-    transform: none;
-  }
-  .nav.scrolled .nav-links {
-    background: rgb(255 255 255 / 0.35);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.7);
+    height: 80px;
   }
   .nav-brand {
     flex: none;
     border-radius: 10px;
   }
+
+  /* ---- pill kaca ---- */
+  .glass {
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.6);
+    backdrop-filter: blur(18px) saturate(1.8);
+    -webkit-backdrop-filter: blur(18px) saturate(1.8);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.8),
+      0 1px 2px rgb(27 24 48 / 0.06),
+      0 10px 26px -14px rgb(76 52 160 / 0.32);
+  }
+
   .nav-links {
     display: flex;
-    gap: 4px;
-    padding: 4px;
-    border-radius: 999px;
-    background: rgb(255 255 255 / 0.6);
-    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: hidden;
   }
   .nav-link {
-    position: relative;
-    padding: 8px 16px;
-    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    padding: 0 18px;
     font-size: 15px;
     font-weight: 550;
     color: var(--ink-2);
-    transition: color 0.2s ease, background-color 0.2s ease, transform 0.35s var(--boing);
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .nav-link + .nav-link {
+    box-shadow: inset 1px 0 0 rgb(27 24 48 / 0.07);
   }
   .nav-link:hover {
     color: var(--ink);
-    background: var(--tint);
-    transform: translateY(-1px);
+    background: rgb(255 255 255 / 0.65);
   }
   .nav-link.active {
-    color: #fff;
-    background: var(--ink);
+    color: var(--violet);
+    font-weight: 700;
+    background: rgb(125 85 204 / 0.09);
   }
+  .nav-home {
+    justify-content: center;
+    width: 54px;
+    padding: 0;
+  }
+  .nav-home svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.45s var(--boing);
+  }
+  .nav-home:hover svg {
+    transform: translateY(-2px) scale(1.08);
+  }
+
   .nav-end {
     display: flex;
     align-items: center;
     gap: 8px;
   }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 18px;
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--ink);
+    transition: transform 0.4s var(--boing);
+  }
+  .nav-cta:hover {
+    transform: translateY(-2px);
+  }
+  .nav-dot {
+    position: relative;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgb(34 197 94 / 0.18);
+  }
+  .nav-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: ping 2s ease-out infinite;
+  }
+  @keyframes ping {
+    0% { transform: scale(1); opacity: 0.6; }
+    80%, 100% { transform: scale(2.6); opacity: 0; }
+  }
+
   .lang {
     display: inline-flex;
-    padding: 4px;
-    border-radius: 999px;
-    box-shadow: inset 0 0 0 1px var(--line-2);
+    align-items: center;
+    height: 52px;
+    padding: 0 7px;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.04em;
   }
   .lang span {
-    padding: 5px 10px;
-    border-radius: 999px;
+    padding: 7px 10px;
+    border-radius: 12px;
     color: var(--muted);
     transition: background-color 0.25s ease, color 0.25s ease;
   }
@@ -205,70 +279,98 @@ const isActive = (m: string) => {
   .lang:hover span:not(.on) {
     color: var(--ink);
   }
+
   .burger {
     display: none;
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     border: 0;
-    border-radius: 14px;
-    background: var(--ink);
     cursor: pointer;
     position: relative;
   }
   .burger i {
     position: absolute;
-    left: 13px;
+    left: 17px;
     width: 18px;
     height: 2px;
     border-radius: 2px;
-    background: #fff;
+    background: var(--ink);
     transition: transform 0.4s var(--boing), top 0.3s ease;
   }
   .burger i:first-child {
-    top: 17px;
+    top: 21px;
   }
   .burger i:last-child {
-    top: 25px;
+    top: 29px;
   }
   .open .burger i:first-child {
-    top: 21px;
+    top: 25px;
     transform: rotate(45deg);
   }
   .open .burger i:last-child {
-    top: 21px;
+    top: 25px;
     transform: rotate(-45deg);
   }
   .sheet {
     display: none;
   }
 
+  @media (max-width: 1080px) {
+    .nav-cta {
+      display: none;
+    }
+  }
   @media (max-width: 820px) {
+    .nav-inner {
+      height: 72px;
+    }
     .nav-links {
       display: none;
     }
+    .lang,
+    .burger {
+      height: 46px;
+    }
     .burger {
       display: block;
+      width: 46px;
+    }
+    .burger i {
+      left: 14px;
+    }
+    .burger i:first-child {
+      top: 18px;
+    }
+    .burger i:last-child {
+      top: 26px;
+    }
+    .open .burger i:first-child,
+    .open .burger i:last-child {
+      top: 22px;
     }
     .sheet {
       display: grid;
       gap: 4px;
-      margin: 0 calc(var(--gutter) - 14px);
+      margin: 0 calc(var(--gutter) - 8px);
       padding: 8px 22px 20px;
       max-height: 0;
       overflow: hidden;
       opacity: 0;
       border-radius: 24px;
-      background: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.5));
+      background: rgb(255 255 255 / 0.66);
       backdrop-filter: blur(22px) saturate(1.9);
       -webkit-backdrop-filter: blur(22px) saturate(1.9);
-      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 18px 40px -20px rgb(76 52 160 / 0.35);
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.8), 0 18px 40px -20px rgb(76 52 160 / 0.35);
       transition: max-height 0.45s ease, opacity 0.3s ease;
     }
     .open .sheet {
-      max-height: 420px;
+      max-height: 480px;
       opacity: 1;
     }
     .sheet-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       font-size: 30px;
       font-weight: 750;
       letter-spacing: -0.02em;
@@ -277,6 +379,10 @@ const isActive = (m: string) => {
       opacity: 0;
       transition: transform 0.5s var(--boing), opacity 0.3s ease;
       transition-delay: calc(var(--i) * 50ms);
+    }
+    .sheet-cta {
+      font-size: 20px;
+      color: var(--violet);
     }
     .open .sheet-link {
       transform: none;
