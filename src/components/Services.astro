@@ -11,7 +11,6 @@ import flEn from "../assets/shots/fastloader-en-list.png";
 import mimoMain from "../assets/shots/mimo-main.png";
 import siteId from "../assets/shots/overlight-site-id.png";
 import siteEn from "../assets/shots/overlight-site-en.png";
-import mark from "../assets/brand/overlight-mark.svg?raw";
 import { SITE } from "../consts";
 import { href, type Lang } from "../i18n";
 
@@ -119,7 +118,6 @@ const copy = {
 const fl = lang === "id" ? flId : flEn;
 const site = lang === "id" ? siteId : siteEn;
 const siteShift = Math.max(0, (1 - 10 / 16 / (site.height / site.width)) * 100);
-const markSvg = mark.replaceAll("olg-", "olgs-");
 ---
 
 <section class="section svc" id="layanan" data-svc>
@@ -231,21 +229,74 @@ const markSvg = mark.replaceAll("olg-", "olgs-");
                   </div>
                 )}
                 {s.key === "game" && (
-                  <div class="art-game">
-                    <span class="cloud c1" />
-                    <span class="cloud c2" />
-                    <span class="plat p1" />
-                    <span class="plat p2" />
-                    <span class="plat p3" />
-                    <span class="flag" />
-                    <span class="coin k1" />
-                    <span class="coin k2" />
-                    <span class="coin k3" />
-                    <span class="hero">
-                      <i />
-                      <i />
+                  <div class="art-runner">
+                    <div class="run-clouds">
+                      {[0, 1].map(() => (
+                        <svg viewBox="0 0 640 400" fill="white">
+                          <path d="M75 104a17 17 0 0 1 17-17h5a25 25 0 0 1 48-5 19 19 0 1 1 5 37H92a17 17 0 0 1-17-15Z" />
+                          <path d="M395 143a12 12 0 0 1 12-12h6a20 20 0 0 1 38-4 15 15 0 1 1 4 29h-48a12 12 0 0 1-12-13Z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <div class="run-hills run-far">
+                      {[0, 1].map(() => (
+                        <svg viewBox="0 0 640 220" preserveAspectRatio="none">
+                          <path d="M0 145C65 145 80 45 160 45S255 145 320 145 410 80 480 80 570 145 640 145V220H0Z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <div class="run-hills run-near">
+                      {[0, 1].map(() => (
+                        <svg viewBox="0 0 640 160" preserveAspectRatio="none">
+                          <path d="M0 95C80 95 100 35 180 35S280 125 360 125 460 65 520 65 600 95 640 95V160H0Z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <div class="run-world">
+                      {[0, 1].map(() => (
+                        <div class="run-tile">
+                          <span class="run-obstacle run-small" />
+                          <span class="run-obstacle run-tall" />
+                          <span class="run-coin"><i /></span>
+                        </div>
+                      ))}
+                    </div>
+                    <span class="run-shadow" />
+                    <div class="run-jump">
+                      <div class="run-bloop">
+                        <span class="run-eye run-eye-l"><i /></span>
+                        <span class="run-eye run-eye-r"><i /></span>
+                        <span class="run-blush run-blush-l" />
+                        <span class="run-blush run-blush-r" />
+                        <span class="run-stride"><i /><i /></span>
+                        <span class="run-tucked"><i /><i /></span>
+                      </div>
+                    </div>
+                    <span class="run-plus">+1</span>
+                    <div class="run-ground" />
+                    <div class="run-hud">
+                      <span class="run-score">
+                        <span>{lang === "id" ? "SKOR" : "SCORE"}</span>
+                        <span class="run-number">
+                          <span class="run-reel">
+                            {Array.from({ length: 11 }, (_, n) => <span>{String((n % 10) * 10).padStart(3, "0")}</span>)}
+                          </span>
+                        </span>
+                      </span>
+                      <span class="run-coins">
+                        <i /> × <span class="run-number">
+                          <span class="run-reel">
+                            {Array.from({ length: 11 }, (_, n) => <span>{String(n % 10).padStart(2, "0")}</span>)}
+                          </span>
+                        </span>
+                      </span>
+                    </div>
+                    <span class="run-hearts">
+                      {[0, 1, 2].map(() => (
+                        <svg viewBox="0 0 24 24"><path d="M12 21 3.4 12.8C-2.2 7.2 5.7-.8 12 5.4 18.3-.8 26.2 7.2 20.6 12.8Z" /></svg>
+                      ))}
                     </span>
-                    <span class="ground" />
+                    <span class="run-caption">BLOOP / RUN 01</span>
                   </div>
                 )}
                 {s.key === "web" && (
@@ -262,38 +313,42 @@ const markSvg = mark.replaceAll("olg-", "olgs-");
                   </div>
                 )}
                 {s.key === "design" && (
-                  <div class="art-design">
-                    <span class="ds-mark" set:html={markSvg} />
-                    <div class="ds-swatches">
-                      <i />
-                      <i />
-                      <i />
-                      <i />
+                  <div class="art-motion">
+                    <div class="md-heading"><i /> MOTION LAB <span>↔ LOOP / 06s</span></div>
+                    <div class="md-swatches"><i /><i /><i /><i /></div>
+                    <span class="md-label md-shape-label">01 / SHAPE</span>
+                    <div class="md-shape-stage"><span class="md-shape" /></div>
+                    <div class="md-type">
+                      <span class="md-label">02 / TYPE</span>
+                      <span class="md-aa">Aa</span>
+                      <span class="md-weight">Outfit / 250 ↔ 900</span>
                     </div>
-                    <div class="ds-type">
-                      <b>Aa</b>
-                      <span>Aa</span>
+                    <div class="md-bounce"><span class="md-shadow" /><span class="md-ball" /></div>
+                    <div class="md-graph">
+                      <span class="md-label">03 / EASING</span>
+                      <svg viewBox="0 0 160 150" fill="none">
+                        <path class="md-axes" d="M16 20V126H144M16 75H144M80 20V126" />
+                        <path class="md-handle" d="M16 126H90M50 24H144" />
+                        <path class="md-bezier" d="M16 126C90 126 50 24 144 24" />
+                        <circle class="md-dot" r="6" />
+                      </svg>
                     </div>
-                    <svg class="ds-curve" viewBox="0 0 200 40" fill="none">
-                      <defs>
-                        <linearGradient id="ds-g" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0" stop-color="#74bcde" />
-                          <stop offset="1" stop-color="#a660d8" />
-                        </linearGradient>
-                      </defs>
-                      <path d="M6 34 C 60 34, 80 6, 194 6" />
-                      <rect x="-6" y="-6" width="12" height="12" rx="3.6" fill="url(#ds-g)">
-                        <animateMotion
-                          dur="3.4s"
-                          repeatCount="indefinite"
-                          path="M6 34 C 60 34, 80 6, 194 6"
-                          keyPoints="0;1;0"
-                          keyTimes="0;0.5;1"
-                          calcMode="spline"
-                          keySplines="0.65 0 0.35 1;0.65 0 0.35 1"
-                        />
-                      </rect>
-                    </svg>
+                    <div class="md-timeline">
+                      <div class="md-timeline-heading"><span>COMPOSITION 01</span><span>0s — 1.5s — 3s</span></div>
+                      <div class="md-layers">
+                        {["Shape", "Weight", "Position"].map((layer) => (
+                          <div class="md-layer">
+                            <span class="md-layer-name"><i />{layer}</span>
+                            <span class="md-track">
+                              <i class="md-key md-key-start" />
+                              <i class="md-key md-key-mid" />
+                              <i class="md-key md-key-end" />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div class="md-playfield"><span class="md-playhead"><i /></span></div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -740,126 +795,300 @@ const markSvg = mark.replaceAll("olg-", "olgs-");
     background: linear-gradient(#e2deeb, #aaa4bc);
   }
 
-  /* ---- art: game (level mini dari kotak-kotak ala logo) ---- */
-  .art-game {
+  /* ---- art: runner Bloop; satu lintasan berulang tiap 6 detik ---- */
+  .art-runner {
     position: absolute;
     inset: 0;
+    container-type: inline-size;
+    color: var(--ink);
+    font-weight: 750;
+    line-height: 1;
   }
-  .cloud {
-    position: absolute;
-    height: 9%;
-    border-radius: 999px;
-    background: #fff;
-    opacity: 0.9;
-    animation: drift 16s linear infinite;
-  }
-  .c1 {
-    top: 14%;
-    width: 18%;
-  }
-  .c2 {
-    top: 26%;
-    width: 12%;
-    animation-delay: -8s;
-  }
-  .plat {
-    position: absolute;
-    height: 9%;
-    border-radius: 12px;
-    border: 4px solid transparent;
-    background: linear-gradient(#fff, #fff) padding-box, var(--grad) border-box;
-  }
-  .p1 {
-    left: 8%;
-    bottom: 22%;
-    width: 22%;
-  }
-  .p2 {
-    left: 39%;
-    bottom: 40%;
-    width: 22%;
-  }
-  .p3 {
-    left: 70%;
-    bottom: 58%;
-    width: 22%;
-  }
-  .flag {
-    position: absolute;
-    left: 86%;
-    bottom: 67%;
-    width: 0.8%;
-    height: 14%;
-    border-radius: 2px;
-    background: #4a4566;
-  }
-  .flag::after {
-    content: "";
-    position: absolute;
-    left: 100%;
-    top: 0;
-    width: 340%;
-    height: 42%;
-    background: var(--grad);
-    clip-path: polygon(0 0, 100% 50%, 0 100%);
-    transform-origin: left center;
-    animation: wave 1.4s ease-in-out infinite alternate;
-  }
-  @keyframes wave {
-    from { transform: scaleX(1) skewY(0deg); }
-    to { transform: scaleX(0.85) skewY(6deg); }
-  }
-  .ground {
+  .run-clouds,
+  .run-hills,
+  .run-world,
+  .run-ground {
     position: absolute;
     left: 0;
-    right: 0;
-    bottom: 0;
-    height: 12%;
-    background: repeating-linear-gradient(90deg, #7d55cc 0 34px, #8f63d3 34px 68px);
-  }
-  .coin {
-    position: absolute;
-    width: 5%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #ffe68a, #f5b700);
-    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.15);
-    animation: coin 4.8s ease-in-out infinite;
-  }
-  .k1 {
-    left: 16.5%;
-    bottom: 38%;
-  }
-  .k2 {
-    left: 47.5%;
-    bottom: 56%;
-    animation-delay: 0.9s;
-  }
-  .k3 {
-    left: 78.5%;
-    bottom: 74%;
-    animation-delay: 1.8s;
-  }
-  .hero {
-    position: absolute;
-    left: 15%;
-    bottom: 31%;
-    width: 9%;
-    aspect-ratio: 1;
-    border-radius: 28%;
-    background: var(--grad);
-    box-shadow: 0 10px 18px -10px rgb(0 0 0 / 0.4);
+    width: 200%;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16%;
-    animation: hop-run 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    animation: run-scroll 6s linear infinite;
   }
-  .hero i {
-    width: 14%;
-    height: 26%;
+  .run-clouds {
+    top: 0;
+    height: 100%;
+    opacity: 0.85;
+    animation-duration: 60s;
+  }
+  .run-clouds svg,
+  .run-hills svg {
+    flex: none;
+    width: 50%;
+    height: 100%;
+  }
+  .run-hills {
+    bottom: 22%;
+    height: 55%;
+  }
+  .run-far {
+    fill: #d3c7ee;
+    animation-duration: 30s;
+  }
+  .run-near {
+    height: 36%;
+    fill: #b9a6e1;
+    animation-duration: 15s;
+  }
+  .run-world {
+    top: 0;
+    height: 100%;
+  }
+  .run-tile {
+    position: relative;
+    flex: none;
+    width: 50%;
+    height: 100%;
+  }
+  .run-obstacle {
+    position: absolute;
+    bottom: 22%;
+    aspect-ratio: 1;
+    border: clamp(3px, 1cqw, 6px) solid transparent;
+    border-radius: 28%;
+    background: linear-gradient(#eee9fb, #eee9fb) padding-box, var(--grad) border-box;
+    box-shadow: 0 5px 0 rgb(75 46 136 / 0.12);
+  }
+  .run-small { left: 2%; width: 6%; }
+  .run-tall { left: 51%; width: 8%; }
+  .run-coin {
+    position: absolute;
+    left: 52.9%;
+    bottom: 60%;
+    width: 4.2%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff2a8, #f5b700 70%);
+    box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.55), 0 3px 0 #dca32b;
+    animation: run-collect 6s linear infinite;
+  }
+  .run-coin i {
+    width: 18%;
+    height: 46%;
+    border-radius: 999px;
+    background: #d99800;
+  }
+  /* salinan berikutnya masuk setelah koin pertama terambil */
+  .run-tile:last-child .run-coin { animation: none; }
+  .run-ground {
+    bottom: 0;
+    height: 22%;
+    background:
+      linear-gradient(#b99aeb, #b99aeb) top / 100% 9% no-repeat,
+      linear-gradient(#5d3caa, #5d3caa) 0 16% / 100% 5% no-repeat,
+      repeating-linear-gradient(90deg, var(--violet) 0 48%, #8d63d3 48% 100%) 0 0 / 5% 100%;
+  }
+  .run-shadow {
+    position: absolute;
+    left: 19.5%;
+    bottom: 20.5%;
+    width: 13%;
+    height: 3%;
+    border-radius: 50%;
+    background: rgb(58 35 109 / 0.22);
+    animation: run-shadow 6s linear infinite;
+    z-index: 1;
+  }
+  .run-jump {
+    position: absolute;
+    left: 20%;
+    bottom: 23.5%;
+    width: 12%;
+    aspect-ratio: 1;
+    transform-origin: 50% 100%;
+    animation: run-jump 6s linear infinite;
+    z-index: 2;
+  }
+  .run-bloop {
+    position: absolute;
+    inset: 0;
+    border-radius: 42% 42% 32% 32%;
+    background: linear-gradient(160deg, #8fd0f0, #7d55cc);
+    box-shadow: inset -0.6cqw -0.7cqw 0 rgb(0 0 0 / 0.12);
+    animation: run-bob 0.3s ease-in-out infinite;
+  }
+  .run-eye,
+  .run-blush,
+  .run-stride,
+  .run-tucked,
+  .run-stride i,
+  .run-tucked i {
+    position: absolute;
+  }
+  .run-eye {
+    top: 28%;
+    width: 20%;
+    height: 28%;
+    display: grid;
+    place-items: center;
     border-radius: 999px;
     background: #fff;
+  }
+  .run-eye-l { left: 22%; }
+  .run-eye-r { right: 22%; }
+  .run-eye i {
+    width: 52%;
+    height: 46%;
+    border-radius: 50%;
+    background: #1b1830;
+    transform: translate(15%, 10%);
+  }
+  .run-blush {
+    top: 58%;
+    width: 16%;
+    height: 9%;
+    border-radius: 50%;
+    background: #ff9db5;
+    opacity: 0.85;
+  }
+  .run-blush-l { left: 9%; }
+  .run-blush-r { right: 9%; }
+  .run-stride,
+  .run-tucked {
+    inset: 0;
+    animation: run-stride 6s steps(1, end) infinite;
+  }
+  .run-tucked { opacity: 0; animation-name: run-tucked; }
+  .run-stride i,
+  .run-tucked i {
+    bottom: -7%;
+    width: 24%;
+    height: 12%;
+    border-radius: 999px;
+    background: #5b3fb0;
+  }
+  .run-stride i:first-child,
+  .run-tucked i:first-child { left: 19%; }
+  .run-stride i:last-child,
+  .run-tucked i:last-child { right: 19%; }
+  .run-stride i { animation: run-foot 0.3s ease-in-out infinite; }
+  .run-stride i:last-child { animation-delay: -0.15s; }
+  .run-tucked i:first-child { transform: translateY(-45%) rotate(20deg); }
+  .run-tucked i:last-child { transform: rotate(-18deg); }
+  .run-plus {
+    position: absolute;
+    left: 31%;
+    top: 23%;
+    color: #9b6410;
+    font-size: clamp(14px, 3.5cqw, 23px);
+    font-weight: 900;
+    opacity: 0;
+    animation: run-plus 6s linear infinite;
+  }
+  .run-hud {
+    position: absolute;
+    left: 5%;
+    top: 6%;
+    display: flex;
+    align-items: center;
+    gap: 1.2em;
+    padding: 0.65em 0.85em;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.8);
+    font-size: clamp(10px, 2.3cqw, 15px);
+    font-variant-numeric: tabular-nums;
+  }
+  .run-score,
+  .run-coins { display: flex; align-items: center; gap: 0.45em; }
+  .run-score > span:first-child {
+    color: #62517f;
+    font-size: clamp(8px, 1.8cqw, 12px);
+    letter-spacing: 0.06em;
+  }
+  .run-coins { animation: run-counter 6s linear infinite; }
+  .run-coins > i {
+    width: 0.8em;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #f5c648;
+    box-shadow: inset 0 0 0 2px #ffe8a0;
+  }
+  .run-number { display: inline-block; width: 3ch; height: 1em; overflow: hidden; }
+  .run-coins .run-number { width: 2ch; }
+  .run-reel {
+    display: flex;
+    flex-direction: column;
+    animation: run-count 60s -4.68s steps(10, end) infinite;
+  }
+  .run-reel > span { flex: none; height: 1em; }
+  .run-hearts {
+    position: absolute;
+    right: 5%;
+    top: 7%;
+    width: 14%;
+    display: flex;
+    gap: 10%;
+  }
+  .run-hearts svg { width: 26.66%; fill: #ef759a; }
+  .run-caption {
+    position: absolute;
+    left: 5%;
+    bottom: 6%;
+    font-size: clamp(8px, 1.8cqw, 12px);
+    color: #f1e9ff;
+    letter-spacing: 0.15em;
+  }
+  @keyframes run-scroll {
+    to { transform: translateX(-50%); }
+  }
+  /* rintangan di x=55% dan x=105%; Bloop di x=26% */
+  @keyframes run-jump {
+    0%, 13%, 46%, 63%, 96%, 100% { transform: translateY(0) scale(1); }
+    14%, 64% { transform: translateY(0) scale(1.15, 0.85); }
+    17%, 67% { transform: translateY(-25%) scale(0.86, 1.16); }
+    20%, 38%, 70%, 88% { transform: translateY(-110%) scale(0.93, 1.08); }
+    25%, 33%, 75%, 83% { transform: translateY(-160%) scale(0.98, 1.03); }
+    29%, 79% { transform: translateY(-170%) scale(1.02, 1); }
+    41%, 91% { transform: translateY(-25%) scale(0.9, 1.12); }
+    43%, 93% { transform: translateY(0) scale(1.2, 0.8); }
+  }
+  @keyframes run-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3%); }
+  }
+  @keyframes run-foot {
+    0%, 100% { transform: translate(12%, -15%) rotate(12deg); }
+    50% { transform: translate(-12%, -50%) rotate(-15deg); }
+  }
+  @keyframes run-stride {
+    0%, 42%, 92%, 100% { opacity: 1; }
+    16%, 66% { opacity: 0; }
+  }
+  @keyframes run-tucked {
+    0%, 42%, 92%, 100% { opacity: 0; }
+    16%, 66% { opacity: 1; }
+  }
+  @keyframes run-shadow {
+    0%, 13%, 46%, 63%, 96%, 100% { transform: scaleX(1); opacity: 1; }
+    29%, 79% { transform: scaleX(0.45); opacity: 0.35; }
+  }
+  @keyframes run-collect {
+    0%, 21.9% { opacity: 1; }
+    22%, 100% { opacity: 0; }
+  }
+  @keyframes run-plus {
+    0%, 21.9%, 39%, 100% { opacity: 0; transform: translateY(15%) scale(0.9); }
+    23% { opacity: 1; transform: translateY(0) scale(1.12); }
+    29% { opacity: 1; transform: translateY(-50%) scale(1); }
+    37% { opacity: 0; transform: translateY(-100%) scale(1); }
+  }
+  @keyframes run-counter {
+    0%, 21%, 29%, 100% { transform: scale(1); }
+    23% { transform: scale(1.12); }
+  }
+  @keyframes run-count {
+    to { transform: translateY(-90.90909%); }
   }
 
   /* ---- art: website ---- */
@@ -913,94 +1142,248 @@ const markSvg = mark.replaceAll("olg-", "olgs-");
     animation: page-scroll 10s ease-in-out infinite;
   }
 
-  /* ---- art: desain & motion ---- */
-  .art-design {
+  /* ---- art: motion lab; semua gerak mengikuti playhead 6 detik ---- */
+  .art-motion {
+    --md-dur: 6s;
     position: absolute;
     inset: 0;
-  }
-  .ds-mark {
-    position: absolute;
-    left: 9%;
-    top: 14%;
-    width: 30%;
-  }
-  .ds-mark :global(svg) {
-    width: 100%;
-    height: auto;
-    overflow: visible;
-  }
-  .ds-mark :global(.ol-s1),
-  .ds-mark :global(.ol-s2),
-  .ds-mark :global(.ol-s3) {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: tumble 3.2s var(--boing) infinite;
-  }
-  .ds-mark :global(.ol-s2) {
-    animation-delay: 0.15s;
-  }
-  .ds-mark :global(.ol-s3) {
-    animation-delay: 0.3s;
-  }
-  .ds-swatches {
-    position: absolute;
-    left: 50%;
-    top: 16%;
-    display: flex;
-    gap: 3%;
-    width: 40%;
-  }
-  .ds-swatches i {
-    flex: 1;
-    aspect-ratio: 1;
-    border-radius: 28%;
-    box-shadow: 0 10px 18px -12px rgb(0 0 0 / 0.4);
-    animation: float 5s ease-in-out infinite;
-  }
-  .ds-swatches i:nth-child(1) {
-    background: var(--cyan);
-  }
-  .ds-swatches i:nth-child(2) {
-    background: var(--blue);
-    animation-delay: 0.3s;
-  }
-  .ds-swatches i:nth-child(3) {
-    background: var(--violet);
-    animation-delay: 0.6s;
-  }
-  .ds-swatches i:nth-child(4) {
-    background: var(--purple);
-    animation-delay: 0.9s;
-  }
-  .ds-type {
-    position: absolute;
-    left: 50%;
-    top: 40%;
-    display: flex;
-    align-items: baseline;
-    gap: 6%;
-    font-size: clamp(36px, 5vw, 64px);
-    line-height: 1;
+    container-type: inline-size;
+    background: radial-gradient(#a997c540 0.7px, transparent 0.8px) 0 0 / 4% 6.4%;
     color: var(--ink);
   }
-  .ds-type b {
-    font-weight: 850;
-  }
-  .ds-type span {
-    font-weight: 250;
-  }
-  .ds-curve {
+  .md-heading {
     position: absolute;
-    left: 9%;
-    bottom: 7%;
-    width: 82%;
-    overflow: visible;
+    left: 6%;
+    top: 7%;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-size: clamp(9px, 2cqw, 13px);
+    font-weight: 800;
+    letter-spacing: 0.08em;
   }
-  .ds-curve path {
-    stroke: var(--violet);
-    stroke-width: 2.5;
-    stroke-dasharray: 5 6;
-    opacity: 0.6;
+  .md-heading > i { width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--violet); }
+  .md-heading > span {
+    margin-left: 1em;
+    color: #79698e;
+    font-size: clamp(7px, 1.5cqw, 10px);
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .md-swatches {
+    position: absolute;
+    right: 6%;
+    top: 6%;
+    width: 22%;
+    display: flex;
+    gap: 5%;
+  }
+  .md-swatches i { width: 21.25%; aspect-ratio: 1.25; border-radius: 25%; }
+  .md-swatches i:nth-child(1) { background: var(--cyan); }
+  .md-swatches i:nth-child(2) { background: var(--blue); }
+  .md-swatches i:nth-child(3) { background: var(--violet); }
+  .md-swatches i:nth-child(4) { background: var(--purple); }
+  .md-label {
+    display: block;
+    color: #79698e;
+    font-size: clamp(7px, 1.7cqw, 11px);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: 0.06em;
+  }
+  .md-shape-label { position: absolute; left: 7%; top: 20%; }
+  .md-shape-stage {
+    position: absolute;
+    left: 6%;
+    top: 28%;
+    width: 28%;
+    height: 36%;
+    display: grid;
+    place-items: center;
+  }
+  .md-shape {
+    width: 68%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: inset -1.5cqw -1.5cqw 0 rgb(255 255 255 / 0.2);
+    animation: md-morph var(--md-dur) ease-in-out infinite;
+  }
+  .md-type { position: absolute; left: 39%; top: 20%; width: 27%; line-height: 1; }
+  .md-aa {
+    display: block;
+    margin-top: 3%;
+    font-size: clamp(30px, 10.5cqw, 68px);
+    line-height: 1;
+    font-weight: 250;
+    letter-spacing: -0.06em;
+    animation: md-type var(--md-dur) ease-in-out infinite;
+  }
+  .md-weight { display: block; margin-top: 2%; font-size: clamp(7px, 1.6cqw, 10px); line-height: 1; color: #79698e; }
+  .md-bounce {
+    position: absolute;
+    left: 39%;
+    top: 49%;
+    width: 24%;
+    height: 19%;
+    border-bottom: 1px solid #c5b5d5;
+  }
+  .md-ball {
+    position: absolute;
+    left: 39%;
+    bottom: 5%;
+    width: 23%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #c28de5, var(--violet));
+    transform-origin: 50% 100%;
+    transform: scale(1.2, 0.8);
+    animation: md-bounce var(--md-dur) linear infinite;
+  }
+  .md-shadow {
+    position: absolute;
+    left: 33%;
+    bottom: 0;
+    width: 35%;
+    height: 10%;
+    border-radius: 50%;
+    background: #7d55cc30;
+    animation: md-shadow var(--md-dur) ease-in-out infinite;
+  }
+  .md-graph {
+    position: absolute;
+    left: 71%;
+    top: 20%;
+    width: 23%;
+    height: 44%;
+    border: 1px solid #e0d5eb;
+    border-radius: 8%;
+    background: rgb(255 255 255 / 0.65);
+  }
+  .md-graph .md-label { position: absolute; left: 9%; top: 10%; }
+  .md-graph svg { position: absolute; left: 5%; top: 23%; width: 90%; height: 72%; }
+  .md-axes { stroke: #dacfe6; stroke-width: 1; }
+  .md-handle { stroke: #c2a9df; stroke-width: 1.5; stroke-dasharray: 3 4; }
+  .md-bezier { stroke: var(--violet); stroke-width: 3; stroke-linecap: round; }
+  /* lintasan CSS dalam satuan SVG: ikut skala viewBox dan aturan jeda panel */
+  .md-dot {
+    fill: var(--purple);
+    stroke: #fff;
+    stroke-width: 2;
+    offset-path: path("M16 126C90 126 50 24 144 24");
+    offset-distance: 0%;
+    offset-rotate: 0deg;
+    animation: md-ease var(--md-dur) linear infinite;
+  }
+  .md-timeline {
+    position: absolute;
+    left: 5%;
+    top: 71%;
+    width: 90%;
+    height: 24%;
+    border-radius: 2cqw;
+    background: #262139;
+    box-shadow: 0 1cqw 2cqw -1.5cqw #34234470;
+    color: #eae2f8;
+  }
+  .md-timeline-heading {
+    position: absolute;
+    left: 4%;
+    right: 5%;
+    top: 10%;
+    display: flex;
+    justify-content: space-between;
+    color: #b9afcd;
+    font-size: clamp(6px, 1.45cqw, 9px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .md-layers { position: absolute; inset: 32% 0 9%; display: grid; grid-template-rows: repeat(3, 1fr); }
+  .md-layer { position: relative; --layer-color: var(--cyan); }
+  .md-layer:nth-child(2) { --layer-color: var(--blue); }
+  .md-layer:nth-child(3) { --layer-color: #c38ae9; }
+  .md-layer-name {
+    position: absolute;
+    left: 4%;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    font-size: clamp(7px, 1.6cqw, 10px);
+    line-height: 1;
+  }
+  .md-layer-name i { width: 0.5em; height: 0.5em; border-radius: 20%; background: var(--layer-color); }
+  .md-track { position: absolute; left: 30%; right: 6%; top: 20%; height: 60%; background: #ffffff09; border-radius: 2px; }
+  .md-key {
+    position: absolute;
+    top: 50%;
+    width: 2.2%;
+    aspect-ratio: 1;
+    border-radius: 15%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    background: var(--layer-color);
+    opacity: 0.35;
+    animation: md-key-start var(--md-dur) linear infinite;
+  }
+  .md-key-start { left: 0; opacity: 1; }
+  .md-key-mid { left: 50%; animation-name: md-key-mid; }
+  .md-key-end { left: 100%; animation-name: md-key-end; }
+  .md-playfield { position: absolute; left: 30%; right: 6%; top: 29%; bottom: 7%; pointer-events: none; }
+  .md-playhead { position: absolute; inset: 0; animation: md-playhead var(--md-dur) linear infinite; }
+  .md-playhead i { position: absolute; left: 0; top: 0; width: 1px; height: 100%; background: #ff92b1; }
+  .md-playhead i::before {
+    content: "";
+    position: absolute;
+    top: -7%;
+    left: 50%;
+    width: 1.25cqw;
+    aspect-ratio: 1;
+    border-radius: 20%;
+    background: #ff92b1;
+    transform: translateX(-50%) rotate(45deg);
+  }
+  @keyframes md-morph {
+    0% { border-radius: 50%; background: var(--cyan); transform: rotate(0deg) scale(0.94); }
+    25% { border-radius: 24%; background: var(--blue); transform: rotate(90deg) scale(0.92); }
+    50% { border-radius: 30% 70% 68% 32% / 38% 35% 65% 62%; background: var(--purple); transform: rotate(180deg) scale(1.04); }
+    75% { border-radius: 24%; background: var(--violet); transform: rotate(270deg) scale(0.92); }
+    100% { border-radius: 50%; background: var(--cyan); transform: rotate(360deg) scale(0.94); }
+  }
+  @keyframes md-type {
+    0%, 100% { font-weight: 250; transform: translateY(0); }
+    50% { font-weight: 900; transform: translateY(-3%); }
+  }
+  @keyframes md-bounce {
+    0%, 50%, 100% { transform: translateY(0) scale(1.2, 0.8); }
+    7%, 57% { transform: translateY(-40%) scale(0.84, 1.16); animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); }
+    25%, 75% { transform: translateY(-90%) scale(1); animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1); }
+    43%, 93% { transform: translateY(-40%) scale(0.9, 1.1); }
+  }
+  @keyframes md-shadow {
+    0%, 50%, 100% { transform: scaleX(1); opacity: 1; }
+    25%, 75% { transform: scaleX(0.45); opacity: 0.4; }
+  }
+  @keyframes md-ease {
+    0%, 100% { offset-distance: 0%; }
+    50% { offset-distance: 100%; }
+  }
+  @keyframes md-playhead {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(100%); }
+  }
+  @keyframes md-key-start {
+    0%, 100% { opacity: 1; }
+    6%, 94% { opacity: 0.35; }
+  }
+  @keyframes md-key-mid {
+    0%, 19%, 31%, 69%, 81%, 100% { opacity: 0.35; }
+    25%, 75% { opacity: 1; }
+  }
+  @keyframes md-key-end {
+    0%, 44%, 56%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
   }
   @keyframes float {
     0%, 100% { translate: 0 0; }
@@ -1017,37 +1400,11 @@ const markSvg = mark.replaceAll("olg-", "olgs-");
     50%, 92% { opacity: 1; }
     100% { opacity: 0; }
   }
-  @keyframes drift {
-    from { left: -20%; }
-    to { left: 110%; }
-  }
   @keyframes page-scroll {
     0%, 12% { transform: translateY(0); }
     48%, 62% { transform: translateY(var(--shift, 0%)); }
     94%, 100% { transform: translateY(0); }
   }
-  @keyframes tumble {
-    0%, 55%, 100% { transform: none; }
-    25% { transform: translateY(-30px) rotate(90deg); }
-  }
-  }
-  /* karakter loncat dari platform ke platform lalu kembali */
-  @keyframes hop-run {
-    0%, 8% { left: 15%; bottom: 31%; }
-    20% { left: 31%; bottom: 58%; }
-    30%, 38% { left: 46%; bottom: 49%; }
-    50% { left: 62%; bottom: 76%; }
-    60%, 72% { left: 77%; bottom: 67%; }
-    86% { left: 46%; bottom: 80%; }
-    100% { left: 15%; bottom: 31%; }
-  }
-  @keyframes coin {
-    0%, 14% { transform: none; opacity: 1; }
-    20% { transform: translateY(-40%) scale(1.3); opacity: 0; }
-    80% { transform: none; opacity: 0; }
-    92%, 100% { transform: none; opacity: 1; }
-  }
-
   /* ---- layar sempit: tab jadi deretan pill yang bisa digeser ---- */
   @media (max-width: 860px) {
     .svc-card {

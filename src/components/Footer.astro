@@ -1,5 +1,5 @@
 ---
-import BrandMark from "./BrandMark.astro";
+import logo from "../assets/brand/overlight-logo.svg?raw";
 import { SITE } from "../consts";
 import { getLang, href, swapLangPath, t } from "../i18n";
 
@@ -9,6 +9,8 @@ interface Props {
 const lang = getLang(Astro.url);
 const alt = Astro.props.altPath ?? swapLangPath(Astro.url);
 const year = new Date().getFullYear();
+// Logo asli utuh (simbol + OVER LIGHT + tagline), ID gradien dibuat unik.
+const footLogo = logo.replaceAll("olg-", "olgf-").replace("<svg ", '<svg aria-hidden="true" ');
 const socials = [
   { label: "Email", url: SITE.email ? `mailto:${SITE.email}` : "" },
   { label: "Instagram", url: SITE.instagram },
@@ -19,8 +21,7 @@ const socials = [
 <footer class="foot">
   <div class="wrap foot-inner">
     <div class="foot-brand">
-      <a href={href(lang, "/")} aria-label="Overlight home"><BrandMark size={40} /></a>
-      <p>{t(lang, "foot.tag")}</p>
+      <a href={href(lang, "/")} class="foot-logo" aria-label="Overlight, your creative partner" set:html={footLogo} />
     </div>
     <nav class="foot-links" aria-label="Footer">
       <a href={href(lang, "/#porto")}>{t(lang, "nav.work")}</a>
@@ -49,9 +50,18 @@ const socials = [
     justify-content: space-between;
     gap: 32px;
   }
-  .foot-brand p {
-    margin-top: 12px;
-    color: var(--muted);
+  .foot-logo {
+    display: block;
+    width: clamp(150px, 16vw, 190px);
+    border-radius: 12px;
+    transition: transform 0.5s var(--boing);
+  }
+  .foot-logo :global(svg) {
+    width: 100%;
+    height: auto;
+  }
+  .foot-logo:hover {
+    transform: rotate(-3deg) scale(1.03);
   }
   .foot-links {
     display: grid;

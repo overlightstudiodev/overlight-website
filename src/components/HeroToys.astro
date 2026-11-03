@@ -1,0 +1,845 @@
+---
+/**
+ * Empat kotak mainan di hero (gema logo). Saat disorot/diketuk, tiap kotak memutar animasi peran:
+ * web developer, game developer, app developer, motion graphic.
+ * Kalau belum disentuh, kotak-kotak memamerkan animasinya bergiliran.
+ */
+import type { Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const c = {
+  id: {
+    hint: "Sentuh kotak-kotak ini",
+    roles: {
+      game: ["Game developer", "karakter, level, dan dunia yang seru"],
+      web: ["Web developer", "website cepat yang merakit dirinya sendiri"],
+      app: ["App developer", "aplikasi yang enak diketuk"],
+      motion: ["Motion graphic", "gerak yang hidup, frame demi frame"],
+    },
+  },
+  en: {
+    hint: "Touch these squares",
+    roles: {
+      game: ["Game developer", "characters, levels, and fun worlds"],
+      web: ["Web developer", "fast sites that build themselves"],
+      app: ["App developer", "apps that feel great to tap"],
+      motion: ["Motion graphic", "lively motion, frame by frame"],
+    },
+  },
+}[lang];
+---
+
+<div class="toys" data-toys aria-hidden="true">
+  <!-- GAME -->
+  <span class="toy toy-1" data-depth="1.6" data-role="game">
+    <span class="hole g-hole">
+      <span class="g-sky"></span>
+      <span class="g-cloud"></span>
+      <span class="g-ground"></span>
+    </span>
+    <span class="g-coin"></span>
+    <span class="g-plus">+1</span>
+    <span class="g-bloop">
+      <span class="g-eye"><i></i></span><span class="g-eye"><i></i></span>
+      <span class="g-blush"></span><span class="g-blush"></span>
+      <span class="g-feet"></span>
+    </span>
+  </span>
+
+  <!-- WEB -->
+  <span class="toy toy-2" data-depth="1" data-role="web">
+    <span class="hole w-hole">
+      <span class="w-bar"></span>
+      <span class="w-hd"></span>
+      <span class="w-hero"></span>
+      <span class="w-card w1"></span>
+      <span class="w-card w2"></span>
+      <span class="w-card w3"></span>
+      <span class="w-tag">&lt;/&gt;</span>
+      <span class="w-click"></span>
+      <span class="w-cur"></span>
+    </span>
+  </span>
+
+  <!-- APP -->
+  <span class="toy toy-3" data-depth="2.2" data-role="app">
+    <span class="hole a-hole">
+      <span class="a-notch"></span>
+      <span class="a-ic a1"></span><span class="a-ic a2"></span><span class="a-ic a3"></span>
+      <span class="a-ic a4"></span><span class="a-ic a5"></span><span class="a-ic a6"></span>
+      <span class="a-badge"></span>
+      <span class="a-tap"></span>
+    </span>
+  </span>
+
+  <!-- MOTION -->
+  <span class="toy toy-4" data-depth="0.6" data-role="motion">
+    <span class="m-ghost m3"></span>
+    <span class="m-ghost m2"></span>
+    <span class="m-ghost m1"></span>
+    <span class="m-body"></span>
+    <span class="m-track"><i class="k1"></i><i class="k2"></i><i class="k3"></i><b class="m-head"></b></span>
+  </span>
+
+  <p class="toys-cap" data-cap>
+    <span class="cap-dot"></span>
+    <span class="cap-t" data-cap-t>{c.hint}</span>
+    <span class="cap-d" data-cap-d></span>
+  </p>
+  <script type="application/json" data-roles set:html={JSON.stringify({ hint: c.hint, roles: c.roles })} />
+</div>
+
+<script>
+  import { gsap } from "gsap";
+
+  document.querySelectorAll<HTMLElement>("[data-toys]").forEach((toys) => {
+    const items = [...toys.querySelectorAll<HTMLElement>(".toy")];
+    const cap = toys.querySelector<HTMLElement>("[data-cap]")!;
+    const capT = toys.querySelector<HTMLElement>("[data-cap-t]")!;
+    const capD = toys.querySelector<HTMLElement>("[data-cap-d]")!;
+    const data = JSON.parse(toys.querySelector("[data-roles]")!.textContent || "{}") as {
+      hint: string;
+      roles: Record<string, [string, string]>;
+    };
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let current: HTMLElement | null = null;
+    let lastTouch = 0;
+    let offTimer = 0;
+
+    const setCap = (el: HTMLElement | null) => {
+      const role = el?.dataset.role;
+      cap.dataset.role = role ?? "";
+      capT.textContent = role ? data.roles[role][0] : data.hint;
+      capD.textContent = role ? data.roles[role][1] : "";
+      cap.classList.remove("pop");
+      void cap.offsetWidth;
+      cap.classList.add("pop");
+    };
+    const on = (el: HTMLElement) => {
+      if (current === el) return;
+      if (current) current.classList.remove("is-on");
+      current = el;
+      el.classList.add("is-on");
+      setCap(el);
+    };
+    const off = (el: HTMLElement) => {
+      if (current !== el) return;
+      el.classList.remove("is-on");
+      current = null;
+      setCap(null);
+    };
+
+    items.forEach((el) => {
+      el.style.pointerEvents = "auto";
+      el.addEventListener("pointerenter", (e) => {
+        if (e.pointerType !== "mouse") return;
+        lastTouch = performance.now();
+        on(el);
+      });
+      el.addEventListener("pointerleave", (e) => {
+        if (e.pointerType !== "mouse") return;
+        lastTouch = performance.now();
+        off(el);
+      });
+      el.addEventListener("pointerdown", (e) => {
+        lastTouch = performance.now();
+        if (e.pointerType !== "mouse") {
+          // ketuk: nyalakan kotak ini sebentar
+          clearTimeout(offTimer);
+          if (current === el) off(el);
+          else {
+            on(el);
+            offTimer = window.setTimeout(() => off(el), 4200);
+          }
+        }
+        if (!calm) {
+          gsap.fromTo(
+            el,
+            { scale: 0.86, rotation: "-=18" },
+            { scale: 1, rotation: "+=18", duration: 0.9, ease: "elastic.out(1.1, 0.35)", overwrite: "auto" },
+          );
+        }
+      });
+    });
+
+    if (calm) return;
+
+    // ikut gerak mouse (parallax)
+    const movers = items.map((el) => ({
+      x: gsap.quickTo(el, "x", { duration: 0.9, ease: "power3.out" }),
+      y: gsap.quickTo(el, "y", { duration: 0.9, ease: "power3.out" }),
+      depth: Number(el.dataset.depth ?? 1),
+    }));
+    addEventListener(
+      "pointermove",
+      (e) => {
+        if (e.pointerType !== "mouse") return;
+        const nx = e.clientX / innerWidth - 0.5;
+        const ny = e.clientY / innerHeight - 0.5;
+        movers.forEach((m) => {
+          m.x(nx * 30 * m.depth);
+          m.y(ny * 22 * m.depth);
+        });
+      },
+      { passive: true },
+    );
+
+    // pamer bergiliran selama belum disentuh (jeda lagi 7 dtk setelah disentuh)
+    let visible = false;
+    new IntersectionObserver(([en]) => (visible = en.isIntersecting), { threshold: 0.4 }).observe(toys);
+    const order = [1, 0, 2, 3].map((k) => items[k]);
+    let k = 0;
+    let demo: HTMLElement | null = null;
+    setInterval(() => {
+      const idle = performance.now() - lastTouch > 7000;
+      if (!visible || document.hidden || !idle) return;
+      if (demo && current === demo) off(demo);
+      demo = order[k++ % order.length];
+      on(demo);
+    }, 3400);
+  });
+</script>
+
+<style>
+  .toys {
+    position: relative;
+    height: clamp(280px, 30vw, 390px);
+    pointer-events: none;
+  }
+  .toy {
+    --bw: 14px;
+    position: absolute;
+    border-radius: 27%;
+    border: var(--bw) solid transparent;
+    background: linear-gradient(var(--paper), var(--paper)) padding-box, var(--g, var(--grad)) border-box;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: scale 0.5s var(--boing);
+  }
+  .toy.is-on {
+    scale: 1.08;
+    z-index: 2;
+  }
+  .hole {
+    position: absolute;
+    inset: 0;
+    border-radius: 20%;
+    overflow: hidden;
+  }
+  .hole > *,
+  .toy > span:not(.hole),
+  .g-bloop > span {
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .toy-1 {
+    --bw: clamp(10px, 1.4vw, 18px);
+    --g: linear-gradient(120deg, #77b8db, #6c90d6);
+    width: 34%;
+    aspect-ratio: 1;
+    top: 5%;
+    left: 6%;
+    animation: bob 5s ease-in-out infinite;
+  }
+  .toy-2 {
+    --bw: clamp(12px, 1.7vw, 22px);
+    --g: linear-gradient(120deg, #6a8ad5, #8155c9);
+    width: 46%;
+    aspect-ratio: 1;
+    top: 0;
+    left: 48%;
+    animation: bob 6s 0.4s ease-in-out infinite;
+  }
+  .toy-3 {
+    --bw: clamp(9px, 1.2vw, 15px);
+    --g: linear-gradient(120deg, #7abedc, #6ea0d8);
+    width: 26%;
+    aspect-ratio: 1;
+    top: 47%;
+    left: 12%;
+    animation: bob 4.6s 0.8s ease-in-out infinite;
+  }
+  .toy-4 {
+    width: 18%;
+    aspect-ratio: 1;
+    top: 56%;
+    left: 60%;
+    border: 0;
+    background: none;
+    animation: bob 5.4s 1.2s ease-in-out infinite;
+  }
+  .toy.is-on {
+    animation-play-state: paused;
+  }
+  @keyframes bob {
+    0%, 100% { translate: 0 0; rotate: 0deg; }
+    50% { translate: 0 -12px; rotate: 6deg; }
+  }
+
+  /* ================= GAME: Bloop melompat keluar kotak ================= */
+  .g-sky {
+    inset: 0;
+    background: linear-gradient(#d6e9ff, #eef6ff);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .g-cloud {
+    top: 18%;
+    left: -40%;
+    width: 38%;
+    height: 12%;
+    border-radius: 999px;
+    background: #fff;
+    opacity: 0;
+  }
+  .g-ground {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24%;
+    background: repeating-linear-gradient(90deg, #7d55cc 0 14%, #9061d4 14% 28%);
+    box-shadow: inset 0 4px 0 #a97ce6;
+    transform: translateY(105%);
+    transition: transform 0.45s var(--boing);
+  }
+  .g-bloop {
+    left: 30%;
+    bottom: 24%;
+    width: 40%;
+    aspect-ratio: 1;
+    border-radius: 42% 42% 32% 32%;
+    background: linear-gradient(160deg, #8fd0f0, #7d55cc);
+    box-shadow: inset -4px -5px 0 rgb(0 0 0 / 0.12), 0 6px 10px -6px rgb(0 0 0 / 0.4);
+    transform-origin: 50% 100%;
+    transform: translateY(80%) scale(0.2);
+    opacity: 0;
+    transition: transform 0.5s var(--boing), opacity 0.2s ease;
+  }
+  .g-eye {
+    top: 28%;
+    width: 20%;
+    height: 28%;
+    border-radius: 999px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+  }
+  .g-eye:nth-of-type(1) {
+    left: 22%;
+  }
+  .g-eye:nth-of-type(2) {
+    right: 22%;
+  }
+  .g-eye i {
+    width: 52%;
+    height: 46%;
+    border-radius: 50%;
+    background: #1b1830;
+    translate: 15% 10%;
+  }
+  .g-blush {
+    top: 58%;
+    width: 16%;
+    height: 9%;
+    border-radius: 50%;
+    background: #ff9db5;
+    opacity: 0.85;
+  }
+  .g-blush:nth-of-type(3) {
+    left: 9%;
+  }
+  .g-blush:nth-of-type(4) {
+    right: 9%;
+  }
+  .g-feet {
+    left: 22%;
+    right: 22%;
+    bottom: -7%;
+    height: 12%;
+    background: radial-gradient(circle at 25% 50%, #5b3fb0 48%, transparent 50%), radial-gradient(circle at 75% 50%, #5b3fb0 48%, transparent 50%);
+  }
+  .g-coin {
+    left: 41%;
+    top: -18%;
+    width: 18%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff2a8, #f5b700 60%, #d99800);
+    box-shadow: 0 4px 8px -4px rgb(0 0 0 / 0.4);
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  .g-plus {
+    left: 56%;
+    top: -26%;
+    font-size: clamp(12px, 1.2vw, 16px);
+    font-weight: 850;
+    color: #f5a800;
+    text-shadow: 0 1px 0 #fff;
+    opacity: 0;
+  }
+  .toy-1.is-on .g-sky {
+    opacity: 1;
+  }
+  .toy-1.is-on .g-ground {
+    transform: none;
+  }
+  .toy-1.is-on .g-cloud {
+    opacity: 1;
+    animation: g-cloud 3.6s linear infinite;
+  }
+  .toy-1.is-on .g-bloop {
+    opacity: 1;
+    transform: none;
+    animation: g-jump 1.5s 0.45s cubic-bezier(0.3, 0, 0.3, 1) infinite;
+  }
+  .toy-1.is-on .g-eye i {
+    animation: g-look 3s ease-in-out infinite;
+  }
+  .toy-1.is-on .g-eye {
+    animation: g-blink 3s 0.6s infinite;
+  }
+  .toy-1.is-on .g-coin {
+    animation: g-coin 1.5s 0.45s ease-in-out infinite;
+  }
+  .toy-1.is-on .g-plus {
+    animation: g-plus 1.5s 0.45s ease-out infinite;
+  }
+  @keyframes g-jump {
+    0% { transform: scale(1.18, 0.8); }
+    14% { transform: translateY(-8%) scale(0.86, 1.18); }
+    42% { transform: translateY(-150%) scale(0.96, 1.05) rotate(-6deg); }
+    50% { transform: translateY(-158%) scale(1) rotate(0deg); }
+    78% { transform: translateY(-4%) scale(0.92, 1.1); }
+    86% { transform: scale(1.22, 0.78); }
+    100% { transform: scale(1); }
+  }
+  @keyframes g-coin {
+    0%, 30% { opacity: 1; transform: scale(1) rotateY(0deg); }
+    46% { opacity: 0; transform: scale(1.5) translateY(-40%); }
+    70% { opacity: 0; transform: scale(0.3); }
+    90%, 100% { opacity: 1; transform: scale(1) rotateY(180deg); }
+  }
+  @keyframes g-plus {
+    0%, 40% { opacity: 0; transform: translateY(0) scale(0.6); }
+    48% { opacity: 1; transform: translateY(-30%) scale(1.15); }
+    72% { opacity: 0; transform: translateY(-120%) scale(1); }
+    100% { opacity: 0; }
+  }
+  @keyframes g-cloud {
+    from { left: -40%; }
+    to { left: 110%; }
+  }
+  @keyframes g-blink {
+    0%, 92%, 100% { scale: 1 1; }
+    95% { scale: 1 0.1; }
+  }
+  @keyframes g-look {
+    0%, 40% { translate: 15% 10%; }
+    50%, 90% { translate: -15% -20%; }
+  }
+
+  /* ================= WEB: website merakit dirinya sendiri ================= */
+  .w-tag {
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: clamp(22px, 2.6vw, 36px);
+    font-weight: 850;
+    letter-spacing: -0.04em;
+    background: var(--grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0;
+  }
+  .w-bar {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 15%;
+    background:
+      radial-gradient(circle at 12% 50%, #ff8a9a 0 6%, transparent 7%),
+      radial-gradient(circle at 21% 50%, #ffd36e 0 6%, transparent 7%),
+      radial-gradient(circle at 30% 50%, #7ad19b 0 6%, transparent 7%),
+      #efebfa;
+    transform: translateY(-105%);
+  }
+  .w-hd {
+    left: 10%;
+    top: 23%;
+    width: 46%;
+    height: 8%;
+    border-radius: 6px;
+    background: var(--blue);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .w-hero {
+    left: 10%;
+    right: 10%;
+    top: 37%;
+    height: 22%;
+    border-radius: 10px;
+    background: linear-gradient(120deg, var(--cyan), var(--violet));
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  .w-card {
+    top: 65%;
+    width: 24%;
+    height: 22%;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: inset 0 0 0 2px #dcd6ef;
+    opacity: 0;
+    transform: translateY(40%);
+  }
+  .w1 {
+    left: 10%;
+  }
+  .w2 {
+    left: 38%;
+  }
+  .w3 {
+    left: 66%;
+  }
+  .w-cur {
+    left: 62%;
+    top: 44%;
+    width: 16%;
+    aspect-ratio: 0.75;
+    background: #1b1830;
+    clip-path: polygon(0 0, 100% 62%, 58% 68%, 82% 100%, 64% 100%, 42% 72%, 0 92%);
+    opacity: 0;
+    filter: drop-shadow(0 1px 0 #fff);
+  }
+  .w-click {
+    left: 56%;
+    top: 40%;
+    width: 18%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 3px solid var(--violet);
+    opacity: 0;
+  }
+  .toy-2.is-on .w-tag {
+    animation: w-tag 3.8s ease-in-out infinite;
+  }
+  .toy-2.is-on .w-bar {
+    animation: w-bar 3.8s var(--boing) infinite;
+  }
+  .toy-2.is-on .w-hd {
+    animation: w-hd 3.8s var(--boing) infinite;
+  }
+  .toy-2.is-on .w-hero {
+    animation: w-hero 3.8s var(--boing) infinite;
+  }
+  .toy-2.is-on .w-card {
+    animation: w-card 3.8s var(--boing) infinite;
+  }
+  .toy-2.is-on .w2 {
+    animation-delay: 0.1s;
+  }
+  .toy-2.is-on .w3 {
+    animation-delay: 0.2s;
+  }
+  .toy-2.is-on .w-cur {
+    animation: w-cur 3.8s ease-in-out infinite;
+  }
+  .toy-2.is-on .w-click {
+    animation: w-click 3.8s ease-out infinite;
+  }
+  @keyframes w-tag {
+    0% { opacity: 0; transform: scale(0.3) rotate(-12deg); }
+    8% { opacity: 1; transform: scale(1.2) rotate(4deg); }
+    14%, 24% { opacity: 1; transform: scale(1); }
+    32%, 100% { opacity: 0; transform: scale(0.4) translate(80%, -90%); }
+  }
+  @keyframes w-bar {
+    0%, 26% { transform: translateY(-105%); }
+    34%, 92% { transform: none; }
+    100% { transform: translateY(-105%); }
+  }
+  @keyframes w-hd {
+    0%, 34% { transform: scaleX(0); }
+    42%, 92% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+  }
+  @keyframes w-hero {
+    0%, 40% { opacity: 0; transform: scale(0.6); }
+    50%, 92% { opacity: 1; transform: none; }
+    84% { transform: scale(0.96); }
+    100% { opacity: 0; transform: scale(0.8); }
+  }
+  @keyframes w-card {
+    0%, 52% { opacity: 0; transform: translateY(50%); }
+    62%, 92% { opacity: 1; transform: none; }
+    100% { opacity: 0; transform: translateY(30%); }
+  }
+  @keyframes w-cur {
+    0%, 62% { opacity: 0; transform: translate(120%, 160%); }
+    68% { opacity: 1; transform: translate(80%, 110%); }
+    80% { opacity: 1; transform: translate(0, 0); }
+    83% { transform: translate(0, 0) scale(0.85); }
+    86%, 92% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(0, 0); }
+  }
+  @keyframes w-click {
+    0%, 82% { opacity: 0; transform: scale(0.2); }
+    83% { opacity: 0.9; transform: scale(0.3); }
+    95%, 100% { opacity: 0; transform: scale(1.8); }
+  }
+
+  /* ================= APP: ikon aplikasi muncul, satu dibuka ================= */
+  .a-notch {
+    left: 35%;
+    top: 7%;
+    width: 30%;
+    height: 7%;
+    border-radius: 999px;
+    background: #1b1830;
+    transform: scaleX(0);
+    transition: transform 0.4s var(--boing);
+  }
+  .a-ic {
+    width: 22%;
+    aspect-ratio: 1;
+    border-radius: 30%;
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  .a1 { left: 13%; top: 26%; background: #74bcde; }
+  .a2 { left: 39%; top: 26%; background: #6c86d6; }
+  .a3 { left: 65%; top: 26%; background: #7d55cc; }
+  .a4 { left: 13%; top: 56%; background: #2e9e62; }
+  .a5 { left: 39%; top: 56%; background: #a660d8; }
+  .a6 { left: 65%; top: 56%; background: #e8701a; }
+  .a-badge {
+    left: 28%;
+    top: 20%;
+    width: 12%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #ff4d6d;
+    box-shadow: 0 0 0 2px #fff;
+    opacity: 0;
+    transform: scale(0);
+  }
+  .a-tap {
+    left: 42%;
+    top: 59%;
+    width: 16%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgb(27 24 48 / 0.25);
+    opacity: 0;
+  }
+  .toy-3.is-on {
+    rotate: 0deg;
+  }
+  .toy-3.is-on .a-notch {
+    transform: none;
+  }
+  .toy-3.is-on .a-ic {
+    animation: a-ic 3.4s var(--boing) infinite;
+    animation-delay: calc(var(--k, 0) * 0.07s);
+  }
+  .a2 { --k: 1; }
+  .a3 { --k: 2; }
+  .a4 { --k: 3; }
+  .a5 { --k: 4; }
+  .a6 { --k: 5; }
+  .toy-3.is-on .a5 {
+    animation-name: a-open;
+  }
+  .toy-3.is-on .a-badge {
+    animation: a-badge 3.4s var(--boing) infinite;
+  }
+  .toy-3.is-on .a-tap {
+    animation: a-tap 3.4s ease-out infinite;
+  }
+  @keyframes a-ic {
+    0% { opacity: 0; transform: scale(0.2); }
+    12%, 88% { opacity: 1; transform: none; }
+    100% { opacity: 0; transform: scale(0.4); }
+  }
+  /* ikon ungu diketuk lalu "membuka" memenuhi layar */
+  @keyframes a-open {
+    0% { opacity: 0; transform: scale(0.2); }
+    12%, 50% { opacity: 1; transform: none; border-radius: 30%; }
+    55% { transform: scale(0.85); }
+    72%, 86% { opacity: 1; transform: translate(-130%, -120%) scale(4.2); border-radius: 14%; }
+    100% { opacity: 0; transform: translate(-130%, -120%) scale(4.2); }
+  }
+  @keyframes a-badge {
+    0%, 22% { opacity: 0; transform: scale(0); }
+    30%, 50% { opacity: 1; transform: scale(1); }
+    56%, 100% { opacity: 0; transform: scale(0); }
+  }
+  @keyframes a-tap {
+    0%, 48% { opacity: 0; transform: scale(0.4); }
+    52% { opacity: 1; transform: scale(1); }
+    64%, 100% { opacity: 0; transform: scale(2.2); }
+  }
+
+  /* ================= MOTION: squash & stretch + jejak + timeline ================= */
+  .m-body,
+  .m-ghost {
+    inset: 0;
+    border-radius: 30%;
+    background: var(--grad);
+    transform-origin: 50% 100%;
+  }
+  .m-body {
+    box-shadow: 0 10px 18px -10px rgb(76 52 160 / 0.5);
+  }
+  .m-ghost {
+    opacity: 0;
+  }
+  .m-track {
+    left: -10%;
+    top: calc(100% + 14px);
+    width: 170%;
+    height: 14px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.4s var(--boing);
+    background: linear-gradient(#dcd6ef, #dcd6ef) center / 100% 2px no-repeat;
+  }
+  .m-track i {
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    background: var(--violet);
+    transform: translate(-50%, -50%) rotate(45deg);
+    border-radius: 2px;
+  }
+  .m-track .k1 { left: 8%; }
+  .m-track .k2 { left: 50%; background: var(--blue); }
+  .m-track .k3 { left: 92%; }
+  .m-head {
+    position: absolute;
+    top: -4px;
+    left: 8%;
+    width: 2px;
+    height: 22px;
+    background: #ff4d6d;
+    border-radius: 2px;
+  }
+  .m-head::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: -4px;
+    width: 10px;
+    height: 7px;
+    border-radius: 2px;
+    background: #ff4d6d;
+  }
+  .toy-4.is-on .m-body {
+    animation: m-hop 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  }
+  .toy-4.is-on .m-ghost {
+    animation: m-hop 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  }
+  .toy-4.is-on .m1 { animation-delay: -0.06s; opacity: 0.45; }
+  .toy-4.is-on .m2 { animation-delay: -0.12s; opacity: 0.28; }
+  .toy-4.is-on .m3 { animation-delay: -0.18s; opacity: 0.14; }
+  .toy-4.is-on .m-track {
+    opacity: 1;
+    transform: none;
+  }
+  .toy-4.is-on .m-head {
+    animation: m-head 1.7s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  }
+  @keyframes m-hop {
+    0% { transform: translate(0, 0) scale(1.22, 0.78) rotate(0deg); }
+    12% { transform: translate(8%, -14%) scale(0.86, 1.16) rotate(30deg); }
+    50% { transform: translate(55%, -62%) scale(1, 1) rotate(180deg); }
+    88% { transform: translate(102%, -10%) scale(0.88, 1.14) rotate(330deg); }
+    100% { transform: translate(110%, 0) scale(1.22, 0.78) rotate(360deg); }
+  }
+  @keyframes m-head {
+    from { left: 8%; }
+    to { left: 92%; }
+  }
+
+  /* ================= keterangan ================= */
+  .toys-cap {
+    position: absolute;
+    left: 6%;
+    bottom: 0;
+    max-width: 52%;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 8px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .cap-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 2.5px solid var(--violet);
+    transition: background-color 0.3s ease, transform 0.5s var(--boing);
+  }
+  .cap-t {
+    font-weight: 750;
+    color: var(--ink-2);
+  }
+  .cap-d {
+    grid-column: 2;
+    font-size: 13px;
+  }
+  .cap-d:empty {
+    display: none;
+  }
+  .toys-cap[data-role]:not([data-role=""]) .cap-dot {
+    background: var(--violet);
+    transform: rotate(45deg);
+  }
+  .toys-cap.pop .cap-t,
+  .toys-cap.pop .cap-d {
+    animation: cap-pop 0.5s var(--boing);
+  }
+  @keyframes cap-pop {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* layar sempit: mainan pindah ke bawah tombol, utuh dan bisa diketuk */
+  @media (max-width: 900px) {
+    .toys {
+      width: min(100%, 420px);
+      height: 350px;
+      margin: 8px auto 0;
+    }
+    /* tinggi wadah di HP lebih besar dari lebarnya: jaga jarak kotak kiri atas & kotak kecil */
+    .toy-3 {
+      top: 52%;
+    }
+    .toys-cap {
+      max-width: 54%;
+      font-size: 13px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toy,
+    .toy * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

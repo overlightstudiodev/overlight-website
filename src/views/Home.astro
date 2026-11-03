@@ -4,6 +4,7 @@ import Intro from "../components/Intro.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import ArticleCard from "../components/ArticleCard.astro";
 import Services from "../components/Services.astro";
+import HeroToys from "../components/HeroToys.astro";
 import { getArticles, getSoftware } from "../lib/content";
 import { SITE } from "../consts";
 import { href, t, type Lang } from "../i18n";
@@ -69,12 +70,7 @@ const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak"
         </div>
       </div>
 
-      <div class="toys" aria-hidden="true" data-toys>
-        <span class="toy toy-1" data-depth="1.6"></span>
-        <span class="toy toy-2" data-depth="1"></span>
-        <span class="toy toy-3" data-depth="2.2"></span>
-        <span class="toy toy-4" data-depth="0.6"></span>
-      </div>
+      <HeroToys lang={lang} />
     </div>
   </section>
 
@@ -140,48 +136,12 @@ const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak"
 </Base>
 
 <script>
-  import { gsap } from "gsap";
-
   // Teks hero naik satu per satu setelah intro selesai (atau langsung kalau intro tidak diputar).
   const start = () => document.documentElement.classList.add("hero-go");
   if (document.documentElement.classList.contains("intro-on")) {
     addEventListener("intro:reveal", start, { once: true });
   } else {
     requestAnimationFrame(start);
-  }
-
-  // Kotak-kotak mainan di hero: ikut gerak mouse, dan memantul saat diklik/ditekan.
-  const toys = document.querySelector<HTMLElement>("[data-toys]");
-  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (toys && !calm) {
-    const items = [...toys.querySelectorAll<HTMLElement>(".toy")];
-    const movers = items.map((el) => ({
-      x: gsap.quickTo(el, "x", { duration: 0.9, ease: "power3.out" }),
-      y: gsap.quickTo(el, "y", { duration: 0.9, ease: "power3.out" }),
-      depth: Number(el.dataset.depth ?? 1),
-    }));
-    addEventListener(
-      "pointermove",
-      (e) => {
-        const nx = e.clientX / innerWidth - 0.5;
-        const ny = e.clientY / innerHeight - 0.5;
-        movers.forEach((m) => {
-          m.x(nx * 36 * m.depth);
-          m.y(ny * 28 * m.depth);
-        });
-      },
-      { passive: true },
-    );
-    items.forEach((el) => {
-      el.style.pointerEvents = "auto";
-      el.addEventListener("pointerdown", () => {
-        gsap.fromTo(
-          el,
-          { scale: 0.8, rotation: "-=25" },
-          { scale: 1, rotation: "+=25", duration: 0.9, ease: "elastic.out(1.1, 0.35)", overwrite: "auto" },
-        );
-      });
-    });
   }
 </script>
 
@@ -222,69 +182,6 @@ const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak"
     transform: none;
     transition: opacity 0.6s ease, transform 0.9s var(--boing);
     transition-delay: calc(var(--h) * 90ms + 60ms);
-  }
-
-  /* --- mainan kotak --- */
-  .toys {
-    position: relative;
-    height: clamp(240px, 26vw, 340px);
-    pointer-events: none;
-  }
-  .toy {
-    position: absolute;
-    border-radius: 27%;
-    border: solid transparent;
-    background: linear-gradient(var(--paper), var(--paper)) padding-box, var(--grad) border-box;
-    cursor: grab;
-    touch-action: manipulation;
-  }
-  .toy-1 {
-    width: 34%;
-    aspect-ratio: 1;
-    top: 6%;
-    left: 8%;
-    border-width: clamp(10px, 1.4vw, 18px);
-    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #77b8db, #6c90d6) border-box;
-    animation: bob 5s ease-in-out infinite;
-  }
-  .toy-2 {
-    width: 46%;
-    aspect-ratio: 1;
-    top: 0;
-    left: 48%;
-    border-width: clamp(12px, 1.7vw, 22px);
-    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #6a8ad5, #8155c9) border-box;
-    animation: bob 6s 0.4s ease-in-out infinite;
-  }
-  .toy-3 {
-    width: 26%;
-    aspect-ratio: 1;
-    top: 52%;
-    left: 14%;
-    border-width: clamp(9px, 1.2vw, 15px);
-    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #7abedc, #6ea0d8) border-box;
-    animation: bob 4.6s 0.8s ease-in-out infinite;
-  }
-  .toy-4 {
-    width: 18%;
-    aspect-ratio: 1;
-    top: 64%;
-    left: 62%;
-    border: 0;
-    background: var(--grad);
-    border-radius: 30%;
-    animation: bob 5.4s 1.2s ease-in-out infinite;
-  }
-  @keyframes bob {
-    0%,
-    100% {
-      translate: 0 0;
-      rotate: 0deg;
-    }
-    50% {
-      translate: 0 -12px;
-      rotate: 6deg;
-    }
   }
 
   /* --- porto --- */
@@ -401,15 +298,6 @@ const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak"
   @media (max-width: 900px) {
     .hero-inner {
       grid-template-columns: 1fr;
-    }
-    .toys {
-      position: absolute;
-      top: -10px;
-      right: -12%;
-      width: 56%;
-      height: 220px;
-      opacity: 0.32;
-      z-index: -1;
     }
     .bento-cell {
       grid-column: span 12;
