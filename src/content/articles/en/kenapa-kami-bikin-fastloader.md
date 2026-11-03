@@ -22,4 +22,4 @@ Many of us also save reference videos from YouTube, Instagram, TikTok, and Faceb
 
 ## What is next
 
-FastLoader 0.6 is being tested on Mac and Windows. Once it is publicly released, the download link will be on the [FastLoader page](/en/software/fastloader).
+FastLoader 0.6 is being tested on Mac and Windows. Once it is publicly released, the download link will be on the [FastLoader page](/software/fastloader).

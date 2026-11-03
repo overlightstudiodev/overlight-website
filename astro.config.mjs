@@ -22,8 +22,8 @@ export default defineConfig({
     build: { cssTarget: ["chrome111", "edge111", "firefox114", "safari16.4", "ios16.4"] },
   },
   i18n: {
-    defaultLocale: "id",
-    locales: ["id", "en"],
+    defaultLocale: "en",
+    locales: ["en", "id"],
     routing: { prefixDefaultLocale: false },
   },
 });

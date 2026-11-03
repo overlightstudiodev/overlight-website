@@ -21,24 +21,25 @@ function stripBase(pathname: string): string {
   return pathname;
 }
 
+/** Bahasa default = English (di root "/"); Indonesia di bawah "/id/". */
 export function getLang(url: URL): Lang {
   const p = stripBase(url.pathname);
-  return p === "/en" || p.startsWith("/en/") ? "en" : "id";
+  return p === "/id" || p.startsWith("/id/") ? "id" : "en";
 }
 
-/** Path dalam bahasa tertentu. `path` selalu ditulis versi Indonesia (tanpa /en). */
+/** Path dalam bahasa tertentu. `path` selalu ditulis tanpa awalan bahasa (versi English). */
 export function href(lang: Lang, path = "/"): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
-  if (lang === "id") return withBase(clean);
-  return withBase(clean === "/" ? "/en/" : clean.startsWith("/#") ? `/en/${clean.slice(1)}` : `/en${clean}`);
+  if (lang === "en") return withBase(clean);
+  return withBase(clean === "/" ? "/id/" : clean.startsWith("/#") ? `/id/${clean.slice(1)}` : `/id${clean}`);
 }
 
 /** Path yang sama di bahasa lain. */
 export function swapLangPath(url: URL): string {
   const lang = getLang(url);
   const p = stripBase(url.pathname);
-  const idPath = lang === "en" ? p.replace(/^\/en(?=\/|$)/, "") || "/" : p;
-  return href(lang === "en" ? "id" : "en", idPath);
+  const enPath = lang === "id" ? p.replace(/^\/id(?=\/|$)/, "") || "/" : p;
+  return href(lang === "id" ? "en" : "id", enPath);
 }
 
 /** Entry koleksi memakai id "<lang>/<slug>". */

@@ -5,11 +5,11 @@ import { getArticles } from "../../lib/content";
 import { entrySlug } from "../../i18n";
 
 export const getStaticPaths = (async () => {
-  const entries = await getArticles("id");
+  const entries = await getArticles("en");
   return entries.map((entry) => ({ params: { slug: entrySlug(entry.id) }, props: { entry } }));
 }) satisfies GetStaticPaths;
 
 const { entry } = Astro.props;
 ---
 
-<ArticleDetail entry={entry} lang="id" />
+<ArticleDetail entry={entry} lang="en" />

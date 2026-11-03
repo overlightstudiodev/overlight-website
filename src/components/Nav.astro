@@ -36,7 +36,7 @@ const isActive = (m: string) => {
       <BrandMark size={38} />
     </a>
 
-    <nav class="nav-links glass" aria-label="Utama">
+    <nav class="nav-links glass" aria-label={lang === "id" ? "Utama" : "Main"}>
       <a href={href(lang, "/")} class:list={["nav-link", "nav-home", { active: path === home }]} aria-label={t(lang, "nav.home")}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3.5 10.5 12 4l8.5 6.5" />
@@ -58,8 +58,8 @@ const isActive = (m: string) => {
         {t(lang, "nav.cta")}
       </a>
       <a href={alt} class="lang glass" hreflang={lang === "id" ? "en" : "id"} aria-label={t(lang, "nav.switchLabel")}>
-        <span class:list={{ on: lang === "id" }}>ID</span>
         <span class:list={{ on: lang === "en" }}>EN</span>
+        <span class:list={{ on: lang === "id" }}>ID</span>
       </a>
       <button class="burger glass" type="button" aria-expanded="false" aria-controls="nav-sheet" aria-label={t(lang, "nav.menu")} data-burger>
         <i></i><i></i>

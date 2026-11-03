@@ -24,4 +24,4 @@ Daripada mengatur bitrate dan resolusi satu per satu, MIMO punya lima profil: la
 
 Mau sekalian simpan rekaman? Tombol **Rekam & mirror** menyimpan sesi ke MP4 tanpa mengganggu stream.
 
-MIMO untuk macOS sudah berjalan dan versi Windows sedang Preview. Info lengkapnya ada di [halaman MIMO](/software/mimo).
+MIMO untuk macOS sudah berjalan dan versi Windows sedang Preview. Info lengkapnya ada di [halaman MIMO](/id/software/mimo).

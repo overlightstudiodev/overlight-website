@@ -22,4 +22,4 @@ Banyak dari kami juga sering menyimpan video referensi dari YouTube, Instagram, 
 
 ## Selanjutnya
 
-FastLoader 0.6 sedang kami uji di Mac dan Windows. Kalau sudah rilis publik, link download-nya akan ada di [halaman FastLoader](/software/fastloader).
+FastLoader 0.6 sedang kami uji di Mac dan Windows. Kalau sudah rilis publik, link download-nya akan ada di [halaman FastLoader](/id/software/fastloader).

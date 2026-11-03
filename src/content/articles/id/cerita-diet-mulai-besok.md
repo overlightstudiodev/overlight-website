@@ -20,4 +20,4 @@ Aplikasi kalori dari luar sering bingung dengan nasi padang, seblak, atau es kop
 
 Kami tidak ingin aplikasi ini membuat orang merasa bersalah. Diary harian menunjukkan sisa kalori dengan santai, aktivitas tercatat lewat Health Connect, dan TIYAS bisa diajak ngobrol soal menu atau kebiasaan makan.
 
-Diet Mulai Besok sudah tersedia gratis di Google Play. Lihat [halaman Diet Mulai Besok](/software/diet-mulai-besok) untuk detailnya.
+Diet Mulai Besok sudah tersedia gratis di Google Play. Lihat [halaman Diet Mulai Besok](/id/software/diet-mulai-besok) untuk detailnya.

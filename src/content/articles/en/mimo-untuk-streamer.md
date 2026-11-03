@@ -24,4 +24,4 @@ Instead of tuning bitrate and resolution one by one, MIMO has five profiles: low
 
 Want a recording too? The **Record & mirror** button saves the session to MP4 without interrupting your stream.
 
-MIMO for macOS is up and running and the Windows version is in Preview. Full details are on the [MIMO page](/en/software/mimo).
+MIMO for macOS is up and running and the Windows version is in Preview. Full details are on the [MIMO page](/software/mimo).

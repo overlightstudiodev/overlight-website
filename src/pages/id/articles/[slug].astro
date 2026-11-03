@@ -1,15 +1,15 @@
 ---
 import type { GetStaticPaths } from "astro";
-import SoftwareDetail from "../../../views/SoftwareDetail.astro";
-import { getSoftware } from "../../../lib/content";
+import ArticleDetail from "../../../views/ArticleDetail.astro";
+import { getArticles } from "../../../lib/content";
 import { entrySlug } from "../../../i18n";
 
 export const getStaticPaths = (async () => {
-  const entries = await getSoftware("en");
+  const entries = await getArticles("id");
   return entries.map((entry) => ({ params: { slug: entrySlug(entry.id) }, props: { entry } }));
 }) satisfies GetStaticPaths;
 
 const { entry } = Astro.props;
 ---
 
-<SoftwareDetail entry={entry} lang="en" />
+<ArticleDetail entry={entry} lang="id" />

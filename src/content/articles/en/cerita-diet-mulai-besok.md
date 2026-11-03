@@ -20,4 +20,4 @@ Calorie apps from abroad often get confused by nasi padang, seblak, or palm suga
 
 We did not want an app that makes people feel guilty. The daily diary shows your remaining calories in a relaxed way, activity is logged through Health Connect, and you can chat with TIYAS about menus or eating habits.
 
-Diet Mulai Besok is available for free on Google Play. See the [Diet Mulai Besok page](/en/software/diet-mulai-besok) for details.
+Diet Mulai Besok is available for free on Google Play. See the [Diet Mulai Besok page](/software/diet-mulai-besok) for details.

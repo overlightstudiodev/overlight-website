@@ -1,6 +1,6 @@
 # Overlight Website
 
-Website studio Overlight: home dengan intro logo animasi + porto, Free Software (halaman per aplikasi), Artikel, dan About. Dua bahasa: Indonesia (`/`) dan Inggris (`/en/`).
+Website studio Overlight: home dengan intro logo animasi + porto, Free Software (halaman per aplikasi), Artikel, dan About. Dua bahasa: Inggris sebagai default (`/`) dan Indonesia (`/id/`). Link lama `/en/...` dialihkan ke `/...` lewat `public/_redirects` (Cloudflare).
 
 Stack: Astro 7 (situs statis) + GSAP (animasi intro) + font Outfit. Tanpa backend.
 
