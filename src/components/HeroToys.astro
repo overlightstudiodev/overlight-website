@@ -19,6 +19,12 @@ const c = {
       app: ["App developer", "dari kode sampai rilis di Play Store"],
       motion: ["Motion graphic", "gerak yang hidup, frame demi frame"],
     },
+    says: {
+      game: ["Ayo bikin game keren!", "Siap main? Level 1 dimulai!", "Koin terkumpul, ayo lanjut!"],
+      web: ["Yuk bikin website kece!", "Website cepat, anti lemot!", "Klik sana, klik sini, beres!"],
+      app: ["Aplikasimu siap rilis!", "Tap, tap, jadi deh!", "Bintang lima, nih!"],
+      motion: ["Biar makin hidup!", "Squash & stretch!", "Frame demi frame, wus!"],
+    },
   },
   en: {
     hint: "Touch these squares",
@@ -27,6 +33,12 @@ const c = {
       web: ["Web developer", "fast sites that build themselves"],
       app: ["App developer", "from code to a Play Store release"],
       motion: ["Motion graphic", "lively motion, frame by frame"],
+    },
+    says: {
+      game: ["Let's build a cool game!", "Ready? Level 1 starts!", "Coins collected, keep going!"],
+      web: ["Let's build a slick website!", "Fast sites, zero lag!", "Click here, click there, done!"],
+      app: ["Your app is ready to ship!", "Tap, tap, done!", "Five stars, right here!"],
+      motion: ["Let's bring it to life!", "Squash & stretch!", "Frame by frame, whoosh!"],
     },
   },
 }[lang];
@@ -99,7 +111,8 @@ const c = {
     <span class="cap-t" data-cap-t>{c.hint}</span>
     <span class="cap-d" data-cap-d></span>
   </p>
-  <script type="application/json" data-roles set:html={JSON.stringify({ hint: c.hint, roles: c.roles })} />
+  <script type="application/json" data-roles set:html={JSON.stringify({ hint: c.hint, roles: c.roles, says: c.says })} />
+  <p class="toy-bubble" data-bubble aria-live="polite"></p>
 </div>
 
 <script>
@@ -113,6 +126,75 @@ const c = {
     const data = JSON.parse(toys.querySelector("[data-roles]")!.textContent || "{}") as {
       hint: string;
       roles: Record<string, [string, string]>;
+      says: Record<string, string[]>;
+    };
+    const bubble = toys.querySelector<HTMLElement>("[data-bubble]")!;
+    const sayIndex: Record<string, number> = {};
+    let bubbleTimer = 0;
+
+    /** Gelembung ucapan di atas (atau di bawah, kalau tidak muat) kotak yang ditekan. */
+    const say = (el: HTMLElement) => {
+      const role = el.dataset.role!;
+      const list = data.says[role];
+      const k = (sayIndex[role] = ((sayIndex[role] ?? -1) + 1) % list.length);
+      bubble.textContent = list[k];
+      bubble.dataset.role = role;
+      const box = toys.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      bubble.classList.remove("show", "below");
+      bubble.style.left = "0px";
+      bubble.style.top = "0px";
+      const bw = bubble.offsetWidth;
+      const bh = bubble.offsetHeight;
+      const cx = r.left + r.width / 2 - box.left;
+      const left = Math.min(Math.max(cx - bw / 2, 0), box.width - bw);
+      let top = r.top - box.top - bh - 14;
+      const below = top < -24;
+      if (below) top = r.bottom - box.top + 14;
+      bubble.classList.toggle("below", below);
+      bubble.style.left = `${left}px`;
+      bubble.style.top = `${top}px`;
+      bubble.style.setProperty("--tail", `${cx - left}px`);
+      void bubble.offsetWidth;
+      bubble.classList.add("show");
+      clearTimeout(bubbleTimer);
+      bubbleTimer = window.setTimeout(() => bubble.classList.remove("show"), 2300);
+    };
+
+    /** Semburan partikel sesuai peran (koin, tag kode, ikon app, berlian keyframe). */
+    const FX: Record<string, string[]> = {
+      game: ["coin", "coin", "coin", "coin", "coin", "plus"],
+      web: ["code:</>", "code:{ }", "code:#", "code:</>", "code:;"],
+      app: ["icon", "icon", "icon", "heart", "icon", "heart"],
+      motion: ["diamond", "spark", "diamond", "spark", "diamond", "spark"],
+    };
+    const burst = (el: HTMLElement) => {
+      if (calm) return;
+      const box = toys.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      const cx = r.left + r.width / 2 - box.left;
+      const cy = r.top + r.height / 2 - box.top;
+      const kinds = FX[el.dataset.role!] ?? [];
+      kinds.forEach((kind, i) => {
+        const p = document.createElement("span");
+        const [type, text] = kind.split(":");
+        p.className = `toy-fx fx-${type}`;
+        if (type === "plus") p.textContent = "+1";
+        if (text) p.textContent = text;
+        p.style.left = `${cx}px`;
+        p.style.top = `${cy}px`;
+        toys.appendChild(p);
+        const ang = -Math.PI / 2 + (i - (kinds.length - 1) / 2) * 0.55 + (Math.random() - 0.5) * 0.3;
+        const dist = 50 + Math.random() * 40;
+        gsap
+          .timeline({ onComplete: () => p.remove() })
+          .fromTo(
+            p,
+            { x: 0, y: 0, scale: 0.3, opacity: 1, rotation: 0 },
+            { x: Math.cos(ang) * dist, y: Math.sin(ang) * dist, scale: 1, rotation: (Math.random() - 0.5) * 140, duration: 0.5, ease: "power3.out" },
+          )
+          .to(p, { y: "+=46", opacity: 0, duration: 0.6, ease: "power2.in" });
+      });
     };
     const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let current: HTMLElement | null = null;
@@ -159,12 +241,11 @@ const c = {
         if (e.pointerType !== "mouse") {
           // ketuk: nyalakan kotak ini sebentar
           clearTimeout(offTimer);
-          if (current === el) off(el);
-          else {
-            on(el);
-            offTimer = window.setTimeout(() => off(el), 4200);
-          }
+          on(el);
+          offTimer = window.setTimeout(() => off(el), 4200);
         }
+        say(el);
+        burst(el);
         if (!calm) {
           gsap.fromTo(
             el,
@@ -933,6 +1014,118 @@ const c = {
   @keyframes cap-pop {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
+  }
+
+  /* ================= gelembung ucapan & partikel saat ditekan ================= */
+  .toy-bubble {
+    --c: var(--violet);
+    position: absolute;
+    z-index: 5;
+    margin: 0;
+    padding: 9px 14px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: inset 0 0 0 2px var(--c), 0 14px 28px -14px rgb(27 24 48 / 0.45);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    scale: 0.4;
+    transform-origin: var(--tail, 50%) 100%;
+    transition: opacity 0.2s ease, scale 0.45s var(--boing), translate 0.45s var(--boing);
+    translate: 0 8px;
+  }
+  .toy-bubble.below {
+    transform-origin: var(--tail, 50%) 0%;
+    translate: 0 -8px;
+  }
+  .toy-bubble.show {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+  /* ekor gelembung menunjuk ke kotak */
+  .toy-bubble::after {
+    content: "";
+    position: absolute;
+    left: var(--tail, 50%);
+    top: 100%;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-right: 2px solid var(--c);
+    border-bottom: 2px solid var(--c);
+    border-radius: 0 0 3px 0;
+    translate: -50% -55%;
+    rotate: 45deg;
+  }
+  .toy-bubble.below::after {
+    top: auto;
+    bottom: 100%;
+    translate: -50% 55%;
+    rotate: 225deg;
+  }
+  .toy-bubble[data-role="game"] { --c: #6c90d6; }
+  .toy-bubble[data-role="web"] { --c: #7d55cc; }
+  .toy-bubble[data-role="app"] { --c: #2e9e62; }
+  .toy-bubble[data-role="motion"] { --c: #a660d8; }
+
+  .toys :global(.toy-fx) {
+    position: absolute;
+    z-index: 4;
+    pointer-events: none;
+    translate: -50% -50%;
+  }
+  .toys :global(.fx-coin) {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff2a8, #f5b700 60%, #d99800);
+    box-shadow: 0 3px 6px -3px rgb(0 0 0 / 0.4);
+  }
+  .toys :global(.fx-plus) {
+    font-size: 16px;
+    font-weight: 900;
+    color: #f5a800;
+    text-shadow: 0 1px 0 #fff;
+  }
+  .toys :global(.fx-code) {
+    padding: 2px 7px;
+    border-radius: 7px;
+    background: #1d1b26;
+    color: #a660d8;
+    font: 800 12px ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .toys :global(.fx-code:nth-of-type(2n)) {
+    color: #74bcde;
+  }
+  .toys :global(.fx-icon) {
+    width: 14px;
+    height: 14px;
+    border-radius: 30%;
+    background: var(--grad);
+  }
+  .toys :global(.fx-heart) {
+    width: 14px;
+    height: 13px;
+    background: #ff4d6d;
+    clip-path: path("M7 13 L1 6.6 A3.4 3.4 0 0 1 7 2.2 A3.4 3.4 0 0 1 13 6.6 Z");
+  }
+  .toys :global(.fx-diamond) {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: var(--purple);
+    rotate: 45deg;
+  }
+  .toys :global(.fx-spark) {
+    width: 14px;
+    height: 14px;
+    background: #f5b700;
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
   }
 
   /* layar sempit: mainan pindah ke bawah tombol, utuh dan bisa diketuk */
