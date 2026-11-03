@@ -12,7 +12,13 @@ export default defineConfig({
   base: BASE_PATH,
   trailingSlash: "ignore",
   devToolbar: { enabled: false },
-  vite: { define: { __BUILD_ID__: JSON.stringify(BUILD_ID) } },
+  vite: {
+    define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+    // Target browser untuk CSS: lightningcss menambah prefix -webkit- sendiri (mis. backdrop-filter
+    // untuk Safari < 18). Jangan tulis -webkit-backdrop-filter manual SETELAH backdrop-filter:
+    // lightningcss menganggapnya pengganti dan membuang versi tanpa prefix, blur hilang di Chrome.
+    build: { cssTarget: ["chrome111", "edge111", "firefox114", "safari16.4", "ios16.4"] },
+  },
   i18n: {
     defaultLocale: "id",
     locales: ["id", "en"],
