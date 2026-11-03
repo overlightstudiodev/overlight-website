@@ -131,7 +131,6 @@ const isActive = (m: string) => {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.35s ease;
-    background: linear-gradient(to bottom, rgb(251 250 255 / 0.4), rgb(251 250 255 / 0));
   }
   .nav-blur i,
   .nav-blur em {
@@ -140,8 +139,9 @@ const isActive = (m: string) => {
   }
   .nav-blur i {
     --b: 1px;
-    backdrop-filter: blur(var(--b)) brightness(1.05) saturate(1.35);
-    -webkit-backdrop-filter: blur(var(--b)) brightness(1.05) saturate(1.35);
+    /* tanpa brightness: latar halaman sedikit ungu, brightness membuatnya jadi pita putih */
+    backdrop-filter: blur(var(--b)) saturate(1.25);
+    -webkit-backdrop-filter: blur(var(--b)) saturate(1.25);
     mask: linear-gradient(to top, transparent var(--m0), #000 var(--m1), #000 var(--m2), transparent var(--m3));
   }
   .nav-blur i:nth-child(1) { --b: 0.25px; --m0: 0%; --m1: 12.5%; --m2: 25%; --m3: 37.5%; }
