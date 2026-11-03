@@ -1,0 +1,540 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import { PLATFORM_LABEL, entrySlug, href, t, type Lang } from "../i18n";
+
+interface Props {
+  entry: CollectionEntry<"software">;
+  lang: Lang;
+  size?: "big" | "wide" | "small";
+  i?: number;
+}
+const { entry, lang, size = "small", i = 0 } = Astro.props;
+const d = entry.data;
+const shot = d.screenshots[0];
+const demo = size !== "small" ? d.card : undefined;
+const frameClass = (k: number, n: number) => (k === 0 ? "frame-first" : k === n - 1 ? "frame-last" : "frame-mid");
+---
+
+<a
+  href={href(lang, `/software/${entrySlug(entry.id)}`)}
+  class:list={["pcard", `pcard-${size}`, { "has-shot": (shot || demo) && size !== "small" }]}
+  style={`--bg:${d.color};--ac:${d.accent};--d:${i}`}
+  data-reveal
+>
+  <span class="pcard-pop" aria-hidden="true"><i></i><i></i><i></i></span>
+  <div class="pcard-top">
+    <span class="pcard-icon"><Image src={d.icon} alt="" width={128} height={128} /></span>
+    <span class:list={["chip", `chip-${d.status}`]}>{t(lang, `status.${d.status}`)}</span>
+  </div>
+  <div class="pcard-body">
+    <p class="pcard-cat">{d.category}</p>
+    <h3>{d.title}</h3>
+    <p class="pcard-tag">{d.tagline}</p>
+    <div class="chips">
+      {d.platforms.map((p) => <span class="chip">{PLATFORM_LABEL[p]}</span>)}
+    </div>
+  </div>
+  {
+    demo && (
+      <div class="pcard-demo" aria-hidden="true" style={demo.scan ? `--st:${demo.scan.top}%;--sh:${demo.scan.height}%` : undefined}>
+        <div class="demo-screen">
+          {demo.frames.map((f, k) => (
+            <Image src={f} alt="" width={480} class:list={["frame", frameClass(k, demo.frames.length)]} />
+          ))}
+          <span class="demo-focus" />
+          <span class="demo-scan" />
+          <span class="demo-flash" />
+        </div>
+        <div class="demo-pops">
+          {demo.chips.map((c, k) => (
+            <span class:list={["demo-pop", { "demo-pop-main": k === 0 }]} style={`--k:${k};${c.color ? `--c:${c.color}` : ""}`}>
+              {c.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+  {
+    shot && !demo && size !== "small" && (
+      <div class="pcard-shot" aria-hidden="true">
+        <Image src={shot.src} alt="" width={360} />
+      </div>
+    )
+  }
+  {
+    !shot && !demo && size !== "small" && (
+      <span class="pcard-deco" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
+      </span>
+    )
+  }
+  <span class="pcard-go" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"></path></svg>
+  </span>
+</a>
+
+<style>
+  .pcard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+    min-height: 320px;
+    padding: clamp(20px, 2.4vw, 30px);
+    border-radius: var(--r-lg);
+    background: var(--bg);
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.5s var(--boing), box-shadow 0.35s ease;
+  }
+  .pcard:hover {
+    transform: translateY(-6px) rotate(-0.4deg);
+    box-shadow: var(--shadow-up);
+  }
+  .pcard:active {
+    transform: scale(0.985);
+  }
+  .pcard-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .pcard-icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: 0 10px 24px -14px rgb(0 0 0 / 0.45);
+    transition: transform 0.55s var(--boing);
+  }
+  .pcard-icon :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .pcard:hover .pcard-icon {
+    transform: rotate(-9deg) scale(1.08);
+  }
+  .pcard-body {
+    max-width: 30ch;
+    position: relative;
+    z-index: 1;
+  }
+  .pcard-cat {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ac);
+    margin-bottom: 8px;
+  }
+  .pcard h3 {
+    font-size: clamp(28px, 3vw, 40px);
+    margin-bottom: 8px;
+  }
+  .pcard-tag {
+    color: var(--ink-2);
+    margin-bottom: 18px;
+  }
+  .pcard-go {
+    position: absolute;
+    right: clamp(20px, 2.4vw, 30px);
+    bottom: clamp(20px, 2.4vw, 30px);
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--ink);
+    color: #fff;
+    z-index: 2;
+    transition: transform 0.45s var(--boing), background-color 0.25s ease;
+  }
+  .pcard-go svg {
+    width: 20px;
+    height: 20px;
+  }
+  .pcard:hover .pcard-go {
+    transform: rotate(45deg) scale(1.08);
+    background: var(--ac);
+  }
+
+  /* tiga kotak kecil meletup dari pojok saat hover, gema dari logo */
+  .pcard-pop {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: -1;
+  }
+  .pcard-pop i {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 4px solid var(--ac);
+    opacity: 0;
+    transform: scale(0.2);
+    transition: transform 0.55s var(--boing), opacity 0.25s ease;
+  }
+  .pcard:hover .pcard-pop i {
+    opacity: 0.35;
+  }
+  .pcard:hover .pcard-pop i:nth-child(1) {
+    transform: translate(-120px, 10px) scale(1) rotate(-12deg);
+  }
+  .pcard:hover .pcard-pop i:nth-child(2) {
+    transform: translate(-80px, 64px) scale(0.7) rotate(18deg);
+    transition-delay: 0.05s;
+  }
+  .pcard:hover .pcard-pop i:nth-child(3) {
+    transform: translate(-150px, 70px) scale(0.5) rotate(-24deg);
+    transition-delay: 0.1s;
+  }
+
+  .pcard-big {
+    min-height: 460px;
+    container-type: inline-size;
+  }
+
+  /* kotak-kotak ala logo, mengisi ruang kosong di kartu lebar */
+  .pcard-deco {
+    display: none;
+    position: absolute;
+    right: 9%;
+    top: 50%;
+    width: 210px;
+    height: 210px;
+    translate: 0 -55%;
+    z-index: 0;
+  }
+  .pcard-deco i {
+    position: absolute;
+    border-radius: 28%;
+    border: 12px solid var(--ac);
+    opacity: 0.22;
+    transition: transform 0.7s var(--boing), opacity 0.3s ease;
+  }
+  .pcard-deco i:nth-child(1) {
+    width: 30%;
+    height: 30%;
+    left: 0;
+    top: 8%;
+  }
+  .pcard-deco i:nth-child(2) {
+    width: 40%;
+    height: 40%;
+    left: 36%;
+    top: 0;
+  }
+  .pcard-deco i:nth-child(3) {
+    width: 24%;
+    height: 24%;
+    left: 3%;
+    top: 46%;
+  }
+  .pcard-deco i:nth-child(4) {
+    width: 58%;
+    height: 58%;
+    left: 34%;
+    top: 46%;
+    border-width: 16px;
+  }
+  .pcard:hover .pcard-deco i {
+    opacity: 0.4;
+  }
+  .pcard:hover .pcard-deco i:nth-child(1) {
+    transform: translate(-10px, -14px) rotate(-14deg);
+  }
+  .pcard:hover .pcard-deco i:nth-child(2) {
+    transform: translate(6px, -18px) rotate(12deg);
+  }
+  .pcard:hover .pcard-deco i:nth-child(3) {
+    transform: translate(-16px, 6px) rotate(-20deg);
+  }
+  .pcard:hover .pcard-deco i:nth-child(4) {
+    transform: scale(1.06) rotate(6deg);
+  }
+  @container (min-width: 560px) {
+    .pcard-deco {
+      display: block;
+    }
+  }
+  .pcard-big h3 {
+    font-size: clamp(34px, 4.2vw, 56px);
+  }
+  .has-shot .pcard-body {
+    max-width: min(30ch, 52%);
+  }
+  .pcard-shot {
+    position: absolute;
+    right: clamp(24px, 6%, 64px);
+    bottom: -38%;
+    width: min(42%, 260px);
+    border-radius: 30px;
+    overflow: hidden;
+    border: 6px solid #fff;
+    box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.45);
+    transform: rotate(6deg);
+    transition: transform 0.6s var(--boing);
+  }
+  .pcard-shot :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .pcard:hover .pcard-shot {
+    transform: rotate(2deg) translateY(-18px);
+  }
+  .has-shot .pcard-go {
+    right: auto;
+    left: clamp(20px, 2.4vw, 30px);
+    bottom: auto;
+    top: clamp(20px, 2.4vw, 30px);
+    display: none;
+  }
+
+
+  /* ---- demo animasi di kartu (mis. Diet Mulai Besok: foto → analisis → hasil) ---- */
+  .pcard-demo {
+    position: absolute;
+    right: clamp(24px, 6%, 64px);
+    bottom: -38%;
+    width: min(42%, 260px);
+    transform: rotate(6deg);
+    transition: transform 0.6s var(--boing);
+  }
+  .pcard:hover .pcard-demo {
+    transform: rotate(2deg) translateY(-18px);
+  }
+  .demo-screen {
+    position: relative;
+    border-radius: 30px;
+    overflow: hidden;
+    border: 6px solid #fff;
+    background: #fff;
+    box-shadow: 0 30px 60px -28px rgb(0 0 0 / 0.45);
+  }
+  .demo-screen :global(.frame) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .demo-screen :global(.frame-mid),
+  .demo-screen :global(.frame-last) {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+  }
+  .demo-focus,
+  .demo-scan,
+  .demo-flash {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+  }
+  /* bingkai kamera di sekitar foto makanan */
+  .demo-focus {
+    left: 5%;
+    right: 5%;
+    top: var(--st, 21.5%);
+    height: var(--sh, 42%);
+    --b: linear-gradient(#fff, #fff);
+    background:
+      var(--b) top left / 22% 3px no-repeat, var(--b) top left / 3px 16% no-repeat,
+      var(--b) top right / 22% 3px no-repeat, var(--b) top right / 3px 16% no-repeat,
+      var(--b) bottom left / 22% 3px no-repeat, var(--b) bottom left / 3px 16% no-repeat,
+      var(--b) bottom right / 22% 3px no-repeat, var(--b) bottom right / 3px 16% no-repeat;
+    filter: drop-shadow(0 0 4px rgb(0 0 0 / 0.35));
+  }
+  .demo-scan {
+    left: 5%;
+    right: 5%;
+    top: var(--st, 22%);
+    height: 3px;
+    border-radius: 3px;
+    background: #34d399;
+    box-shadow: 0 0 14px 3px rgb(16 185 129 / 0.7);
+  }
+  .demo-scan::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 46px;
+    background: linear-gradient(to top, rgb(52 211 153 / 0.35), transparent);
+  }
+  .demo-flash {
+    inset: 0;
+    background: #fff;
+  }
+  .demo-pops {
+    position: absolute;
+    left: -24%;
+    top: 3%;
+    display: grid;
+    justify-items: start;
+    gap: 8px;
+    transform: rotate(-6deg);
+  }
+  .demo-pop {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-left: calc(var(--k) * 10px);
+    padding: 7px 13px 7px 10px;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 750;
+    white-space: nowrap;
+    box-shadow: 0 12px 24px -12px rgb(0 0 0 / 0.35);
+    opacity: 0;
+  }
+  .demo-pop::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+    background: var(--c, var(--ac));
+  }
+  .demo-pop-main {
+    margin-left: 0;
+    padding: 9px 18px;
+    background: #059669;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 850;
+    letter-spacing: -0.01em;
+  }
+  .demo-pop-main::before {
+    display: none;
+  }
+
+  /* satu putaran 9 detik: foto + pindai (0–27%), menganalisa (29–43%), hasil + angka meletup (45–93%) */
+  .pcard-demo :global(.frame-first) {
+    animation: f-first 9s linear infinite;
+  }
+  .pcard-demo :global(.frame-mid) {
+    animation: f-mid 9s linear infinite;
+  }
+  .pcard-demo :global(.frame-last) {
+    animation: f-last 9s linear infinite;
+  }
+  .demo-focus {
+    animation: d-focus 9s ease-out infinite;
+  }
+  .demo-scan {
+    animation: d-scan 9s ease-in-out infinite;
+  }
+  .demo-flash {
+    animation: d-flash 9s linear infinite;
+  }
+  .demo-pop {
+    animation: d-pop 9s var(--boing) infinite both;
+    animation-delay: calc(var(--k) * 0.16s);
+  }
+  /* animasi baru jalan saat kartu masuk layar (kelas .in dari reveal) */
+  .pcard .pcard-demo :global(*) {
+    animation-play-state: paused;
+  }
+  .pcard:global(.in) .pcard-demo :global(*) {
+    animation-play-state: running;
+  }
+  @keyframes f-first {
+    0%, 27% { opacity: 1; }
+    29%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes f-mid {
+    0%, 27% { opacity: 0; }
+    29%, 43% { opacity: 1; }
+    45%, 100% { opacity: 0; }
+  }
+  @keyframes f-last {
+    0%, 43% { opacity: 0; }
+    45%, 93% { opacity: 1; }
+    97%, 100% { opacity: 0; }
+  }
+  @keyframes d-focus {
+    0% { opacity: 0; transform: scale(1.12); }
+    4%, 24% { opacity: 1; transform: scale(1); }
+    27%, 100% { opacity: 0; transform: scale(1); }
+  }
+  @keyframes d-scan {
+    0%, 4% { top: var(--st, 22%); opacity: 0; }
+    6% { opacity: 1; }
+    14% { top: calc(var(--st, 22%) + var(--sh, 40%) - 1%); }
+    23% { top: var(--st, 22%); opacity: 1; }
+    25%, 100% { top: var(--st, 22%); opacity: 0; }
+  }
+  @keyframes d-flash {
+    0%, 25.5% { opacity: 0; }
+    26.5% { opacity: 0.85; }
+    30%, 100% { opacity: 0; }
+  }
+  @keyframes d-pop {
+    0%, 47% { opacity: 0; transform: translateX(46px) scale(0.4); }
+    52% { opacity: 1; transform: translateX(-4px) scale(1.08); }
+    55%, 90% { opacity: 1; transform: none; }
+    94%, 100% { opacity: 0; transform: translateX(12px) scale(0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pcard-demo :global(*) {
+      animation: none !important;
+    }
+    .pcard-demo :global(.frame-first),
+    .pcard-demo :global(.frame-mid) {
+      opacity: 0;
+    }
+    .pcard-demo :global(.frame-last) {
+      opacity: 1;
+    }
+    .demo-pop {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .pcard,
+    .pcard-big {
+      min-height: 0;
+    }
+    .has-shot {
+      padding-bottom: 240px;
+    }
+    .has-shot .pcard-body {
+      max-width: none;
+    }
+    .pcard-shot {
+      right: 50%;
+      bottom: -120px;
+      width: 200px;
+      transform: translateX(50%) rotate(5deg);
+    }
+    .pcard:hover .pcard-shot {
+      transform: translateX(50%) rotate(2deg) translateY(-10px);
+    }
+    .pcard-demo {
+      right: 8%;
+      bottom: -150px;
+      width: 190px;
+    }
+    .demo-pops {
+      left: -56%;
+      top: 10%;
+    }
+    .demo-pop-main {
+      font-size: 18px;
+    }
+  }
+</style>

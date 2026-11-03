@@ -1,0 +1,107 @@
+---
+import BrandMark from "./BrandMark.astro";
+import { SITE } from "../consts";
+import { getLang, href, swapLangPath, t } from "../i18n";
+
+interface Props {
+  altPath?: string;
+}
+const lang = getLang(Astro.url);
+const alt = Astro.props.altPath ?? swapLangPath(Astro.url);
+const year = new Date().getFullYear();
+const socials = [
+  { label: "Email", url: SITE.email ? `mailto:${SITE.email}` : "" },
+  { label: "Instagram", url: SITE.instagram },
+  { label: "GitHub", url: SITE.github },
+].filter((s) => s.url);
+---
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <div class="foot-brand">
+      <a href={href(lang, "/")} aria-label="Overlight home"><BrandMark size={40} /></a>
+      <p>{t(lang, "foot.tag")}</p>
+    </div>
+    <nav class="foot-links" aria-label="Footer">
+      <a href={href(lang, "/#porto")}>{t(lang, "nav.work")}</a>
+      <a href={href(lang, "/software")}>{t(lang, "nav.software")}</a>
+      <a href={href(lang, "/articles")}>{t(lang, "nav.articles")}</a>
+      <a href={href(lang, "/about")}>{t(lang, "nav.about")}</a>
+      {socials.map((s) => <a href={s.url} rel="noopener">{s.label}</a>)}
+      <a href={alt} hreflang={lang === "id" ? "en" : "id"}>{lang === "id" ? "English" : "Bahasa Indonesia"}</a>
+    </nav>
+  </div>
+  <div class="wrap foot-bottom">
+    <span>© {year} {SITE.studio}. {t(lang, "foot.rights")}</span>
+    <span class="foot-squares" aria-hidden="true"><i></i><i></i><i></i></span>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    margin-top: 40px;
+    padding: 56px 0 28px;
+    border-top: 1px solid var(--line);
+  }
+  .foot-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 32px;
+  }
+  .foot-brand p {
+    margin-top: 12px;
+    color: var(--muted);
+  }
+  .foot-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(140px, auto));
+    gap: 10px 40px;
+    font-weight: 550;
+    color: var(--ink-2);
+  }
+  .foot-links a {
+    transition: color 0.2s ease;
+  }
+  .foot-links a:hover {
+    color: var(--violet);
+  }
+  .foot-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 48px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .foot-squares {
+    display: flex;
+    gap: 6px;
+  }
+  .foot-squares i {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    border: 2.5px solid var(--cyan);
+    animation: hop 2.4s var(--boing) infinite;
+  }
+  .foot-squares i:nth-child(2) {
+    border-color: var(--blue);
+    animation-delay: 0.15s;
+  }
+  .foot-squares i:nth-child(3) {
+    border-color: var(--purple);
+    animation-delay: 0.3s;
+  }
+  @keyframes hop {
+    0%,
+    60%,
+    100% {
+      transform: none;
+    }
+    30% {
+      transform: translateY(-6px) rotate(12deg);
+    }
+  }
+</style>

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.superpowers/
+.playwright-mcp/
+.DS_Store
+.env
+
+# Internal, tetap lokal (tidak di-upload ke repo publik)
+docs/source-assets/
+docs/project-memory.md
+AGENTS.md

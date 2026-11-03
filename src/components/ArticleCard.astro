@@ -1,0 +1,83 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { entrySlug, formatDate, href, t, type Lang } from "../i18n";
+
+interface Props {
+  entry: CollectionEntry<"articles">;
+  lang: Lang;
+  accent?: string;
+  i?: number;
+}
+const { entry, lang, accent = "var(--violet)", i = 0 } = Astro.props;
+const d = entry.data;
+---
+
+<a href={href(lang, `/articles/${entrySlug(entry.id)}`)} class="acard" style={`--ac:${accent};--d:${i}`} data-reveal>
+  <div class="acard-meta">
+    <time datetime={d.pubDate.toISOString()}>{formatDate(d.pubDate, lang)}</time>
+    {d.tags[0] && <span>· {d.tags[0]}</span>}
+  </div>
+  <h3>{d.title}</h3>
+  <p>{d.description}</p>
+  <span class="acard-read">{t(lang, "art.read")} <span aria-hidden="true">→</span></span>
+</a>
+
+<style>
+  .acard {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 26px 26px 24px;
+    border-radius: var(--r);
+    background: var(--card);
+    box-shadow: inset 0 0 0 1px var(--line);
+    transition: transform 0.5s var(--boing), box-shadow 0.3s ease;
+  }
+  .acard::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 4px solid var(--ac);
+    transition: transform 0.55s var(--boing);
+  }
+  .acard:hover {
+    transform: translateY(-4px);
+    box-shadow: inset 0 0 0 1px var(--line), var(--shadow-up);
+  }
+  .acard:hover::before {
+    transform: rotate(45deg) scale(1.15);
+  }
+  .acard-meta {
+    display: flex;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .acard h3 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+  .acard p {
+    color: var(--ink-2);
+    font-size: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .acard-read {
+    margin-top: auto;
+    padding-top: 8px;
+    font-weight: 700;
+    color: var(--ac);
+  }
+  .acard-read span {
+    display: inline-block;
+    transition: transform 0.4s var(--boing);
+  }
+  .acard:hover .acard-read span {
+    transform: translateX(5px);
+  }
+</style>

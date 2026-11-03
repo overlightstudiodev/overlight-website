@@ -1,0 +1,232 @@
+---
+import BrandMark from "./BrandMark.astro";
+import { getLang, href, swapLangPath, t } from "../i18n";
+
+interface Props {
+  /** Path bahasa lain, kalau berbeda dari pola standar (mis. artikel tanpa terjemahan). */
+  altPath?: string;
+}
+const lang = getLang(Astro.url);
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
+const alt = Astro.props.altPath ?? swapLangPath(Astro.url);
+
+const links = [
+  { label: t(lang, "nav.work"), to: href(lang, "/#porto"), match: href(lang, "/") },
+  { label: t(lang, "nav.software"), to: href(lang, "/software"), match: href(lang, "/software") },
+  { label: t(lang, "nav.articles"), to: href(lang, "/articles"), match: href(lang, "/articles") },
+  { label: t(lang, "nav.about"), to: href(lang, "/about"), match: href(lang, "/about") },
+];
+const isActive = (m: string) => {
+  const mm = m.replace(/\/$/, "") || "/";
+  const home = href(lang, "/").replace(/\/$/, "") || "/";
+  if (mm === home) return false;
+  return path === mm || path.startsWith(mm + "/");
+};
+---
+
+<header class="nav" data-nav>
+  <div class="wrap nav-inner">
+    <a href={href(lang, "/")} class="nav-brand" aria-label="Overlight home">
+      <BrandMark size={38} mark={false} />
+    </a>
+
+    <nav class="nav-links" aria-label="Utama">
+      {
+        links.map((l) => (
+          <a href={l.to} class:list={["nav-link", { active: isActive(l.match) }]} aria-current={isActive(l.match) ? "page" : undefined}>
+            {l.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="nav-end">
+      <a href={alt} class="lang" hreflang={lang === "id" ? "en" : "id"} aria-label={t(lang, "nav.switchLabel")}>
+        <span class:list={{ on: lang === "id" }}>ID</span>
+        <span class:list={{ on: lang === "en" }}>EN</span>
+      </a>
+      <button class="burger" type="button" aria-expanded="false" aria-controls="nav-sheet" aria-label={t(lang, "nav.menu")} data-burger>
+        <i></i><i></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="sheet" id="nav-sheet" data-sheet>
+    {
+      links.map((l, i) => (
+        <a href={l.to} class="sheet-link" style={`--i:${i}`}>
+          {l.label}
+        </a>
+      ))
+    }
+  </div>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>("[data-nav]");
+  const burger = document.querySelector<HTMLButtonElement>("[data-burger]");
+  const setOpen = (open: boolean) => {
+    nav?.classList.toggle("open", open);
+    burger?.setAttribute("aria-expanded", String(open));
+    document.documentElement.classList.toggle("sheet-open", open);
+  };
+  burger?.addEventListener("click", () => setOpen(!nav?.classList.contains("open")));
+  document.querySelectorAll("[data-sheet] a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+  addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+
+  const onScroll = () => nav?.classList.toggle("scrolled", scrollY > 8);
+  addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+  }
+  .nav.scrolled,
+  .nav.open {
+    background: rgb(251 250 255 / 0.82);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 72px;
+  }
+  .nav-brand {
+    flex: none;
+    border-radius: 10px;
+  }
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.6);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .nav-link {
+    position: relative;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 550;
+    color: var(--ink-2);
+    transition: color 0.2s ease, background-color 0.2s ease, transform 0.35s var(--boing);
+  }
+  .nav-link:hover {
+    color: var(--ink);
+    background: var(--tint);
+    transform: translateY(-1px);
+  }
+  .nav-link.active {
+    color: #fff;
+    background: var(--ink);
+  }
+  .nav-end {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lang {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px var(--line-2);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .lang span {
+    padding: 5px 10px;
+    border-radius: 999px;
+    color: var(--muted);
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+  .lang span.on {
+    background: var(--grad);
+    color: #fff;
+  }
+  .lang:hover span:not(.on) {
+    color: var(--ink);
+  }
+  .burger {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ink);
+    cursor: pointer;
+    position: relative;
+  }
+  .burger i {
+    position: absolute;
+    left: 13px;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform 0.4s var(--boing), top 0.3s ease;
+  }
+  .burger i:first-child {
+    top: 17px;
+  }
+  .burger i:last-child {
+    top: 25px;
+  }
+  .open .burger i:first-child {
+    top: 21px;
+    transform: rotate(45deg);
+  }
+  .open .burger i:last-child {
+    top: 21px;
+    transform: rotate(-45deg);
+  }
+  .sheet {
+    display: none;
+  }
+
+  @media (max-width: 820px) {
+    .nav-links {
+      display: none;
+    }
+    .burger {
+      display: block;
+    }
+    .sheet {
+      display: grid;
+      gap: 4px;
+      padding: 8px var(--gutter) 24px;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.45s ease, opacity 0.3s ease;
+    }
+    .open .sheet {
+      max-height: 420px;
+      opacity: 1;
+    }
+    .sheet-link {
+      font-size: 30px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      padding: 8px 0;
+      transform: translateY(10px);
+      opacity: 0;
+      transition: transform 0.5s var(--boing), opacity 0.3s ease;
+      transition-delay: calc(var(--i) * 50ms);
+    }
+    .open .sheet-link {
+      transform: none;
+      opacity: 1;
+    }
+  }
+</style>

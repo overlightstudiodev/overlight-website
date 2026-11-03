@@ -1,0 +1,303 @@
+---
+import { Image } from "astro:assets";
+import { render, type CollectionEntry } from "astro:content";
+import Base from "../layouts/Base.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { getSoftware, hasTranslation } from "../lib/content";
+import { PLATFORM_LABEL, baseLinks, entrySlug, href, t, type Lang } from "../i18n";
+
+interface Props {
+  entry: CollectionEntry<"software">;
+  lang: Lang;
+}
+const { entry, lang } = Astro.props;
+const d = entry.data;
+const { Content } = await render(entry);
+const others = (await getSoftware(lang)).filter((e) => e.id !== entry.id).slice(0, 3);
+const other = lang === "id" ? "en" : "id";
+const altPath = (await hasTranslation("software", entry.id)) ? href(other, `/software/${entrySlug(entry.id)}`) : href(other, "/software");
+const shots = d.screenshots;
+---
+
+<Base title={d.title} description={d.description} altPath={altPath}>
+  <article class="app" style={`--bg:${d.color};--ac:${d.accent}`}>
+    <div class="wrap">
+      <a href={href(lang, "/software")} class="back" data-reveal><span aria-hidden="true">←</span> {t(lang, "sw.back")}</a>
+
+      <header class="app-hero">
+        <div class="app-copy">
+          <p class="eyebrow app-cat" data-reveal>{d.category}</p>
+          <h1 data-reveal style="--d:1">{d.title}</h1>
+          <p class="lead" data-reveal style="--d:2">{d.tagline}</p>
+          <div class="chips" data-reveal style="--d:3">
+            <span class:list={["chip", `chip-${d.status}`]}>{t(lang, `status.${d.status}` as const)}</span>
+            {d.platforms.map((p) => <span class="chip">{PLATFORM_LABEL[p]}</span>)}
+            <span class="chip">{d.price ?? t(lang, "sw.free")}</span>
+          </div>
+          <div class="app-cta" data-reveal style="--d:4">
+            {
+              d.links.length > 0 ? (
+                d.links.map((l) => (
+                  <a href={l.url} class:list={["btn", { "btn-ac": l.primary, "btn-ghost": !l.primary }]} rel="noopener" target="_blank">
+                    {l.label}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7 17 17 7M9 7h8v8" />
+                    </svg>
+                  </a>
+                ))
+              ) : (
+                <span class="btn" aria-disabled="true">
+                  {t(lang, "sw.soon")}
+                </span>
+              )
+            }
+          </div>
+        </div>
+
+        <div class="app-visual" data-reveal style="--d:2" aria-hidden="true">
+          <span class="sq sq-1"></span><span class="sq sq-2"></span><span class="sq sq-3"></span>
+          {
+            shots.length > 0 ? (
+              <div class="phone">
+                <Image src={shots[0].src} alt="" width={420} />
+              </div>
+            ) : (
+              <div class="big-icon">
+                <Image src={d.icon} alt="" width={320} height={320} />
+              </div>
+            )
+          }
+        </div>
+      </header>
+
+      {
+        shots.length > 1 && (
+          <div class="shots" data-reveal>
+            {shots.map((s, i) => (
+              <figure class="shot" style={`--r:${(i - 1) * 3}deg`}>
+                <Image src={s.src} alt={s.alt} width={360} />
+                <figcaption>{s.alt}</figcaption>
+              </figure>
+            ))}
+          </div>
+        )
+      }
+
+      <div class="app-body prose" data-reveal>
+        {entry.rendered?.html ? <Fragment set:html={baseLinks(entry.rendered.html)} /> : <Content />}
+      </div>
+    </div>
+
+    {
+      others.length > 0 && (
+        <section class="section more">
+          <div class="wrap">
+            <div class="section-head" data-reveal>
+              <h2>{t(lang, "sw.more")}</h2>
+            </div>
+            <div class="more-grid">
+              {others.map((o, i) => (
+                <ProjectCard entry={o} lang={lang} size="small" i={i} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: clamp(24px, 4vw, 40px);
+    padding: 8px 14px 8px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    color: var(--ink-2);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  .back:hover {
+    background: var(--tint);
+    color: var(--ink);
+  }
+  .back span {
+    display: inline-block;
+    transition: transform 0.4s var(--boing);
+  }
+  .back:hover span {
+    transform: translateX(-4px);
+  }
+
+  .app-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+    padding: clamp(24px, 4vw, 48px) 0 clamp(48px, 7vw, 88px);
+  }
+  .app-cat {
+    color: var(--ac);
+  }
+  .app h1 {
+    margin: 14px 0 18px;
+    font-size: clamp(52px, 8.4vw, 112px);
+    letter-spacing: -0.04em;
+  }
+  .app .chips {
+    margin-top: 24px;
+  }
+  .app-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .btn-ac {
+    --bg: var(--ac);
+  }
+
+  .app-visual {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: clamp(32px, 4vw, 56px);
+    background: var(--bg);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .big-icon {
+    width: 52%;
+    border-radius: 23%;
+    overflow: hidden;
+    box-shadow: 0 40px 70px -34px rgb(0 0 0 / 0.5);
+    animation: float 6s ease-in-out infinite;
+  }
+  .big-icon :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .phone {
+    width: 46%;
+    margin-top: 22%;
+    border-radius: 34px;
+    overflow: hidden;
+    border: 7px solid #fff;
+    box-shadow: 0 40px 70px -34px rgb(0 0 0 / 0.5);
+    transform: rotate(5deg);
+    animation: float 6s ease-in-out infinite;
+  }
+  .phone :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .sq {
+    position: absolute;
+    border-radius: 28%;
+    border: 5px solid var(--ac);
+    opacity: 0.28;
+  }
+  .sq-1 {
+    width: 16%;
+    aspect-ratio: 1;
+    top: 9%;
+    left: 9%;
+    animation: float 5s ease-in-out infinite;
+  }
+  .sq-2 {
+    width: 22%;
+    aspect-ratio: 1;
+    top: 6%;
+    left: 28%;
+    animation: float 6.5s 0.5s ease-in-out infinite;
+  }
+  .sq-3 {
+    width: 12%;
+    aspect-ratio: 1;
+    top: 29%;
+    left: 11%;
+    animation: float 4.5s 1s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -14px;
+    }
+  }
+
+  .shots {
+    display: flex;
+    gap: clamp(14px, 2vw, 28px);
+    overflow-x: auto;
+    padding: 12px 4px 36px;
+    margin-bottom: clamp(32px, 5vw, 64px);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .shots::-webkit-scrollbar {
+    display: none;
+  }
+  .shot {
+    flex: 0 0 min(260px, 64vw);
+    margin: 0;
+    scroll-snap-align: center;
+    transform: rotate(var(--r));
+    transition: transform 0.5s var(--boing);
+  }
+  .shot:hover {
+    transform: rotate(0deg) translateY(-8px);
+  }
+  .shot :global(img) {
+    width: 100%;
+    height: auto;
+    border-radius: 30px;
+    border: 6px solid #fff;
+    box-shadow: var(--shadow-up);
+    background: var(--bg);
+  }
+  .shot figcaption {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .app-body {
+    margin: 0 auto;
+  }
+  .app-body :global(ul > li::before) {
+    border-color: var(--ac) !important;
+  }
+  .app-body :global(ol > li::before) {
+    background: var(--bg);
+    color: var(--ac);
+  }
+
+  .more {
+    margin-top: clamp(32px, 5vw, 64px);
+    background: linear-gradient(transparent, var(--tint));
+  }
+  .more-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+
+  @media (max-width: 900px) {
+    .app-hero {
+      grid-template-columns: 1fr;
+    }
+    .app-visual {
+      max-width: 520px;
+      width: 100%;
+    }
+    .more-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

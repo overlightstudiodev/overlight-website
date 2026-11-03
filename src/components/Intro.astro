@@ -1,0 +1,198 @@
+---
+/**
+ * Intro home: kotak-kotak logo meletup satu per satu, tulisan muncul,
+ * lalu kotak besar membesar jadi "jendela" yang membuka halaman.
+ * Diputar sekali per sesi browser. Tambah ?intro ke URL untuk memutar ulang.
+ */
+import logo from "../assets/brand/overlight-logo.svg?raw";
+import { getLang, t } from "../i18n";
+
+const lang = getLang(Astro.url);
+
+// Lubang jendela = bagian dalam kotak besar (koordinat viewBox logo).
+const HOLE = { x0: 333, y0: 412, x1: 1195, y1: 1218, r: 86 };
+const { x0, y0, x1, y1, r } = HOLE;
+const frame =
+  `M-14000 -14000H15500V15500H-14000Z ` +
+  `M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 1 ${x1} ${y0 + r}V${y1 - r}A${r} ${r} 0 0 1 ${x1 - r} ${y1}` +
+  `H${x0 + r}A${r} ${r} 0 0 1 ${x0} ${y1 - r}V${y0 + r}A${r} ${r} 0 0 1 ${x0 + r} ${y0}Z`;
+
+let svg = logo.replaceAll("olg-", "olgi-").replace("<svg ", '<svg class="intro-logo" aria-hidden="true" ');
+const ring = svg.match(/<g class="ol-ring">.*?<\/g><\/g><\/g>/s)?.[0] ?? "";
+svg = svg.replace(ring, "").replace(
+  "</defs>",
+  `</defs><g class="ol-zoom"><path class="ol-frame" fill-rule="evenodd" d="${frame}"/>${ring}</g>`,
+);
+---
+
+<script is:inline>
+  (function () {
+    try {
+      var q = new URLSearchParams(location.search).has("intro");
+      var seen = sessionStorage.getItem("ol-intro") === "1";
+      var calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (q || (!seen && !calm)) {
+        document.documentElement.classList.add("intro-on");
+        if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      }
+    } catch (e) {}
+  })();
+</script>
+
+<div class="intro" data-intro data-hole={JSON.stringify(HOLE)}>
+  <div class="intro-stage" set:html={svg} />
+  <button class="intro-skip" type="button" data-intro-skip>{t(lang, "intro.skip")} <span aria-hidden="true">→</span></button>
+</div>
+
+<script>
+  import { gsap } from "gsap";
+
+  const root = document.documentElement;
+  const intro = document.querySelector<HTMLElement>("[data-intro]");
+
+  function finish() {
+    root.classList.remove("intro-on");
+    intro?.remove();
+    gsap.set(["#main", "[data-nav]"], { clearProps: "opacity,transform,transformOrigin" });
+    try {
+      sessionStorage.setItem("ol-intro", "1");
+    } catch {}
+    if ("scrollRestoration" in history) history.scrollRestoration = "auto";
+    window.dispatchEvent(new CustomEvent("intro:reveal"));
+    window.dispatchEvent(new CustomEvent("intro:done"));
+  }
+
+  if (!root.classList.contains("intro-on") || !intro) {
+    intro?.remove();
+  } else {
+    scrollTo(0, 0);
+    const q = (s: string) => intro.querySelector<SVGGElement>(s)!;
+    const svg = intro.querySelector<SVGSVGElement>("svg")!;
+    const [s1, s2, s3] = [q(".ol-s1"), q(".ol-s2"), q(".ol-s3")];
+    const ring = q(".ol-ring");
+    const zoom = q(".ol-zoom");
+    const frame = q(".ol-frame");
+    const words = [q(".ol-over"), q(".ol-light")];
+    const tag = q(".ol-tag");
+    const hole = JSON.parse(intro.dataset.hole!);
+    const cx = (hole.x0 + hole.x1) / 2;
+    const cy = (hole.y0 + hole.y1) / 2;
+
+    // Skala zoom supaya lubang jendela menutup seluruh layar, di ukuran layar apa pun.
+    const zoomScale = () => {
+      const box = svg.getBoundingClientRect();
+      const k = box.height / svg.viewBox.baseVal.height;
+      const hx = box.left + (cx - svg.viewBox.baseVal.x) * k;
+      const hy = box.top + (cy - svg.viewBox.baseVal.y) * k;
+      const dx = Math.max(hx, innerWidth - hx);
+      const dy = Math.max(hy, innerHeight - hy);
+      const half = ((hole.x1 - hole.x0) / 2) * k;
+      return (Math.hypot(dx, dy) / half) * 1.06;
+    };
+
+    gsap.set([s1, s2, s3, ring], { scale: 0, rotation: -22, opacity: 0, transformOrigin: "50% 50%" });
+    gsap.set([...words, tag], { opacity: 0, y: 40 });
+    gsap.set(zoom, { svgOrigin: `${cx} ${cy}` });
+    gsap.set(frame, { opacity: 0 });
+    gsap.set(["#main", "[data-nav]"], { opacity: 0 });
+    gsap.set("#main", { scale: 1.06, transformOrigin: "50% 30vh" });
+
+    const pop = { scale: 1, rotation: 0, opacity: 1, ease: "back.out(2.4)", duration: 0.62 };
+    const tl = gsap.timeline({ delay: 0.15, onComplete: finish });
+    tl.to(s1, pop)
+      .to(s2, pop, "<0.11")
+      .to(s3, pop, "<0.11")
+      .to(ring, { ...pop, ease: "back.out(1.7)", duration: 0.75 }, "<0.12")
+      .to(words, { opacity: 1, y: 0, duration: 0.5, ease: "back.out(2)", stagger: 0.09 }, "-=0.35")
+      .to(tag, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, "-=0.25")
+      .addLabel("hold")
+      // logo "bernapas" sebentar
+      .to([s1, s2, s3], { y: -14, rotation: 8, duration: 0.32, ease: "power2.out", stagger: 0.06 }, "hold+=0.25")
+      .to([s1, s2, s3], { y: 0, rotation: 0, duration: 0.5, ease: "back.out(3)", stagger: 0.06 }, ">-0.12")
+      .addLabel("zoom", "hold+=1.05")
+      .to([...words, tag], { opacity: 0, y: -16, duration: 0.24, ease: "power2.in", stagger: 0.03 }, "zoom")
+      .to(s1, { x: -420, y: -320, rotation: -60, scale: 0.4, opacity: 0, duration: 0.6, ease: "power3.in" }, "zoom+=0.08")
+      .to(s2, { x: -90, y: -520, rotation: 50, scale: 0.4, opacity: 0, duration: 0.6, ease: "power3.in" }, "<0.03")
+      .to(s3, { x: -560, y: 60, rotation: -40, scale: 0.4, opacity: 0, duration: 0.6, ease: "power3.in" }, "<0.03")
+      .set(frame, { opacity: 1 }, "zoom+=0.26")
+      .set(intro, { backgroundColor: "transparent" }, "zoom+=0.26")
+      .call(() => window.dispatchEvent(new CustomEvent("intro:reveal")), [], "zoom+=0.12")
+      .to(["#main", "[data-nav]"], { opacity: 1, duration: 0.35, ease: "power1.out" }, "zoom+=0.26")
+      .to(zoom, { scale: () => zoomScale(), duration: 1, ease: "power4.in" }, "zoom+=0.2")
+      .to("#main", { scale: 1, duration: 1.1, ease: "power3.out" }, "zoom+=0.75");
+
+    if (import.meta.env.DEV) (window as unknown as { __introTl: gsap.core.Timeline }).__introTl = tl;
+
+    let skipped = false;
+    const skip = () => {
+      if (skipped) return;
+      skipped = true;
+      if (tl.time() < tl.labels.zoom) tl.seek("zoom");
+      tl.timeScale(1.5);
+    };
+    intro.querySelector("[data-intro-skip]")?.addEventListener("click", skip);
+    intro.addEventListener("pointerdown", skip);
+    addEventListener("keydown", skip, { once: true });
+    addEventListener("wheel", skip, { once: true, passive: true });
+    addEventListener("touchmove", skip, { once: true, passive: true });
+  }
+</script>
+
+<style is:global>
+  .intro {
+    display: none;
+  }
+  .intro-on body {
+    overflow: hidden;
+  }
+  .intro-on .intro {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--paper);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .intro-stage {
+    width: min(78vw, 62vh, 560px);
+    aspect-ratio: 1512 / 1566;
+  }
+  .intro-logo {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .intro-logo .ol-frame {
+    fill: var(--paper);
+  }
+  /* Sembunyikan bagian logo sebelum GSAP siap, supaya tidak berkedip. */
+  .intro-on .intro-logo > g:not(.ol-zoom),
+  .intro-on .intro-logo .ol-ring,
+  .intro-on .intro-logo .ol-frame,
+  .intro-on #main,
+  .intro-on [data-nav] {
+    opacity: 0;
+  }
+  .intro-skip {
+    position: absolute;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    min-height: 44px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .intro-skip:hover {
+    color: var(--ink);
+    background: var(--tint);
+  }
+</style>

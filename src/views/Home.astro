@@ -1,0 +1,485 @@
+---
+import Base from "../layouts/Base.astro";
+import Intro from "../components/Intro.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import ArticleCard from "../components/ArticleCard.astro";
+import { getArticles, getSoftware } from "../lib/content";
+import { SITE } from "../consts";
+import { href, t, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+const { lang } = Astro.props;
+const work = (await getSoftware(lang)).filter((e) => e.data.portfolio);
+const articles = (await getArticles(lang)).slice(0, 3);
+const accentBySlug = Object.fromEntries(work.map((w) => [w.id.split("/")[1], w.data.accent]));
+// Tiap baris berisi 2 kartu (7 + 5 kolom). Kartu dengan screenshot dapat slot lebar.
+const spans = work.map((w, i) => {
+  const pair = i % 2 === 0 ? [w, work[i + 1]] : [work[i - 1], w];
+  const visual = (e?: (typeof work)[number]) => !!e && (e.data.screenshots.length > 0 || !!e.data.card);
+  const wideFirst = !(visual(pair[1]) && !visual(pair[0]));
+  const isFirst = i % 2 === 0;
+  if (!pair[1]) return 12;
+  return isFirst === wideFirst ? 7 : 5;
+});
+const contact = SITE.email ? `mailto:${SITE.email}` : href(lang, "/about#kontak");
+
+const services = [
+  { key: "app", icon: "app" },
+  { key: "game", icon: "game" },
+  { key: "design", icon: "design" },
+] as const;
+---
+
+<Base>
+  <Intro slot="before" />
+
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow" data-h style="--h:0"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>{t(lang, "home.eyebrow")}</p>
+        <h1>
+          <span data-h style="--h:1"><span class="thin">{t(lang, "home.title.a")}</span> {t(lang, "home.title.b")}</span>
+          <span data-h style="--h:2"><span class="thin">{t(lang, "home.title.c")}</span> <span class="grad-text">{t(lang, "home.title.d")}</span></span>
+        </h1>
+        <p class="lead" data-h style="--h:3">{t(lang, "home.lead")}</p>
+        <div class="hero-cta" data-h style="--h:4">
+          <a href="#porto" class="btn">{t(lang, "home.workBtn")} <span aria-hidden="true">↓</span></a>
+          <a href={href(lang, "/software")} class="btn btn-ghost">{t(lang, "nav.software")}</a>
+        </div>
+      </div>
+
+      <div class="toys" aria-hidden="true" data-toys>
+        <span class="toy toy-1" data-depth="1.6"></span>
+        <span class="toy toy-2" data-depth="1"></span>
+        <span class="toy toy-3" data-depth="2.2"></span>
+        <span class="toy toy-4" data-depth="0.6"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section work" id="porto">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2><span class="thin">{t(lang, "home.work.a")}</span> {t(lang, "home.work.b")}<span class="count">{String(work.length).padStart(2, "0")}</span></h2>
+        <p>{t(lang, "home.workLead")}</p>
+      </div>
+      <div class="bento">
+        {
+          work.map((w, i) => (
+            <div class="bento-cell" style={`--span:${spans[i]}`}>
+              <ProjectCard entry={w} lang={lang} size="big" i={i % 2} />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section services">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2>{t(lang, "home.services")}</h2>
+      </div>
+      <div class="svc-grid">
+        {
+          services.map((s, i) => (
+            <div class="svc" data-reveal style={`--d:${i}`}>
+              <span class:list={["svc-icon", `svc-${s.icon}`]} aria-hidden="true">
+                {s.icon === "app" && (
+                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="5" width="22" height="38" rx="7" />
+                    <rect x="30" y="17" width="12" height="12" rx="4" />
+                  </svg>
+                )}
+                {s.icon === "game" && (
+                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="12" width="40" height="26" rx="10" />
+                    <path d="M15 20v10M10 25h10" />
+                    <rect x="29" y="19" width="5" height="5" rx="1.6" />
+                    <rect x="34" y="26" width="5" height="5" rx="1.6" />
+                  </svg>
+                )}
+                {s.icon === "design" && (
+                  <svg viewBox="0 0 48 48" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="5" width="24" height="24" rx="7" />
+                    <circle cx="31" cy="31" r="12" />
+                  </svg>
+                )}
+              </span>
+              <h3>{t(lang, `home.svc.${s.key}.t`)}</h3>
+              <p>{t(lang, `home.svc.${s.key}.d`)}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {
+    articles.length > 0 && (
+      <section class="section latest">
+        <div class="wrap">
+          <div class="section-head" data-reveal>
+            <h2>{t(lang, "home.latest")}</h2>
+            <a href={href(lang, "/articles")} class="btn btn-ghost">
+              {t(lang, "home.allArticles")} <span aria-hidden="true">→</span>
+            </a>
+          </div>
+          <div class="art-grid">
+            {articles.map((a, i) => (
+              <ArticleCard entry={a} lang={lang} accent={a.data.software ? accentBySlug[a.data.software] : undefined} i={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section cta-wrap">
+    <div class="wrap">
+      <div class="cta" data-reveal>
+        <div class="cta-box">
+          <span class="cta-sq" aria-hidden="true"><i></i><i></i><i></i></span>
+          <h2>{t(lang, "home.cta.t")}</h2>
+          <p class="lead">{t(lang, "home.cta.d")}</p>
+          <a href={contact} class="btn btn-light">{t(lang, "home.cta.btn")} <span aria-hidden="true">→</span></a>
+        </div>
+        <span class="cta-tail" aria-hidden="true"></span>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { gsap } from "gsap";
+
+  // Teks hero naik satu per satu setelah intro selesai (atau langsung kalau intro tidak diputar).
+  const start = () => document.documentElement.classList.add("hero-go");
+  if (document.documentElement.classList.contains("intro-on")) {
+    addEventListener("intro:reveal", start, { once: true });
+  } else {
+    requestAnimationFrame(start);
+  }
+
+  // Kotak-kotak mainan di hero: ikut gerak mouse, dan memantul saat diklik/ditekan.
+  const toys = document.querySelector<HTMLElement>("[data-toys]");
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (toys && !calm) {
+    const items = [...toys.querySelectorAll<HTMLElement>(".toy")];
+    const movers = items.map((el) => ({
+      x: gsap.quickTo(el, "x", { duration: 0.9, ease: "power3.out" }),
+      y: gsap.quickTo(el, "y", { duration: 0.9, ease: "power3.out" }),
+      depth: Number(el.dataset.depth ?? 1),
+    }));
+    addEventListener(
+      "pointermove",
+      (e) => {
+        const nx = e.clientX / innerWidth - 0.5;
+        const ny = e.clientY / innerHeight - 0.5;
+        movers.forEach((m) => {
+          m.x(nx * 36 * m.depth);
+          m.y(ny * 28 * m.depth);
+        });
+      },
+      { passive: true },
+    );
+    items.forEach((el) => {
+      el.style.pointerEvents = "auto";
+      el.addEventListener("pointerdown", () => {
+        gsap.fromTo(
+          el,
+          { scale: 0.8, rotation: "-=25" },
+          { scale: 1, rotation: "+=25", duration: 0.9, ease: "elastic.out(1.1, 0.35)", overwrite: "auto" },
+        );
+      });
+    });
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    overflow-x: clip;
+    padding: clamp(28px, 5vw, 64px) 0 clamp(8px, 2vw, 24px);
+  }
+  .hero-inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 40px;
+  }
+  .hero h1 {
+    margin: 18px 0 22px;
+    font-size: clamp(40px, 5.4vw, 78px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+  .hero h1 > span {
+    display: block;
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  :global(.js) [data-h] {
+    opacity: 0;
+    transform: translateY(34px);
+  }
+  :global(.hero-go) [data-h] {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.6s ease, transform 0.9s var(--boing);
+    transition-delay: calc(var(--h) * 90ms + 60ms);
+  }
+
+  /* --- mainan kotak --- */
+  .toys {
+    position: relative;
+    height: clamp(240px, 26vw, 340px);
+    pointer-events: none;
+  }
+  .toy {
+    position: absolute;
+    border-radius: 27%;
+    border: solid transparent;
+    background: linear-gradient(var(--paper), var(--paper)) padding-box, var(--grad) border-box;
+    cursor: grab;
+    touch-action: manipulation;
+  }
+  .toy-1 {
+    width: 34%;
+    aspect-ratio: 1;
+    top: 6%;
+    left: 8%;
+    border-width: clamp(10px, 1.4vw, 18px);
+    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #77b8db, #6c90d6) border-box;
+    animation: bob 5s ease-in-out infinite;
+  }
+  .toy-2 {
+    width: 46%;
+    aspect-ratio: 1;
+    top: 0;
+    left: 48%;
+    border-width: clamp(12px, 1.7vw, 22px);
+    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #6a8ad5, #8155c9) border-box;
+    animation: bob 6s 0.4s ease-in-out infinite;
+  }
+  .toy-3 {
+    width: 26%;
+    aspect-ratio: 1;
+    top: 52%;
+    left: 14%;
+    border-width: clamp(9px, 1.2vw, 15px);
+    background: linear-gradient(var(--paper), var(--paper)) padding-box, linear-gradient(120deg, #7abedc, #6ea0d8) border-box;
+    animation: bob 4.6s 0.8s ease-in-out infinite;
+  }
+  .toy-4 {
+    width: 18%;
+    aspect-ratio: 1;
+    top: 64%;
+    left: 62%;
+    border: 0;
+    background: var(--grad);
+    border-radius: 30%;
+    animation: bob 5.4s 1.2s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      translate: 0 0;
+      rotate: 0deg;
+    }
+    50% {
+      translate: 0 -12px;
+      rotate: 6deg;
+    }
+  }
+
+  /* --- porto --- */
+  .work {
+    padding-top: clamp(40px, 6vw, 72px);
+  }
+  .count {
+    display: inline-block;
+    margin-left: 12px;
+    font-size: 0.4em;
+    font-weight: 600;
+    vertical-align: super;
+    color: var(--violet);
+  }
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+  .bento-cell {
+    grid-column: span var(--span);
+    display: grid;
+  }
+
+  /* --- layanan --- */
+  .svc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+  .svc {
+    padding: 30px;
+    border-radius: var(--r-lg);
+    background: var(--card);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .svc h3 {
+    font-size: 26px;
+    margin: 22px 0 10px;
+  }
+  .svc p {
+    color: var(--ink-2);
+  }
+  .svc-icon {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: var(--tint);
+    transition: transform 0.55s var(--boing);
+  }
+  .svc-icon svg {
+    width: 34px;
+    height: 34px;
+  }
+  .svc-app svg {
+    stroke: var(--cyan);
+  }
+  .svc-game svg {
+    stroke: var(--blue);
+  }
+  .svc-design svg {
+    stroke: var(--purple);
+  }
+  .svc:hover .svc-icon {
+    transform: rotate(-10deg) scale(1.08);
+  }
+
+  /* --- artikel --- */
+  .art-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+
+  /* --- CTA: bubble chat penuh gradasi Overlight --- */
+  .cta-wrap {
+    padding-bottom: clamp(100px, 11vw, 150px);
+  }
+  .cta {
+    --grad-x: linear-gradient(90deg, var(--cyan) 0%, var(--blue) 38%, var(--violet) 70%, var(--purple) 100%);
+    position: relative;
+    max-width: 960px;
+    margin: 0 auto;
+    container-type: inline-size;
+    filter: drop-shadow(0 26px 38px rgb(125 85 204 / 0.28));
+  }
+  .cta-box {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    padding: clamp(44px, 7vw, 84px) clamp(24px, 6vw, 72px);
+    border-radius: clamp(36px, 5vw, 64px);
+    background: var(--grad-x);
+    color: #fff;
+    text-align: center;
+  }
+  .cta-box h2 {
+    font-size: clamp(34px, 5.4vw, 64px);
+    max-width: 16ch;
+    margin: 0 auto 18px;
+    color: #fff;
+  }
+  .cta-box .lead {
+    margin: 0 auto 32px;
+    color: rgb(255 255 255 / 0.88);
+  }
+  .btn-light {
+    --bg: #fff;
+    --fg: var(--violet);
+  }
+  .btn-light:hover {
+    box-shadow: 0 16px 30px -14px rgb(27 24 48 / 0.45);
+  }
+  /* ekor bubble: warnanya diambil dari gradasi kotak yang sama, jadi sambungannya tidak kelihatan */
+  .cta-tail {
+    --w: clamp(62px, 10cqw, 112px);
+    position: absolute;
+    top: calc(100% - 1px);
+    right: 12cqw;
+    width: var(--w);
+    aspect-ratio: 120 / 92;
+    background: var(--grad-x);
+    background-size: 100cqw 100%;
+    background-position: calc((88cqw - var(--w)) * -1) 0;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 92' preserveAspectRatio='none'%3E%3Cpath d='M0 0H120L94 78Q87 95 74 84Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 92' preserveAspectRatio='none'%3E%3Cpath d='M0 0H120L94 78Q87 95 74 84Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  }
+  /* tiga kotak putih ala logo di pojok bubble */
+  .cta-sq {
+    position: absolute;
+    top: clamp(22px, 3vw, 34px);
+    left: clamp(22px, 3vw, 38px);
+    display: grid;
+    grid-template-columns: 22px 30px;
+    gap: 7px;
+    align-items: end;
+    opacity: 0.32;
+  }
+  .cta-sq i {
+    display: block;
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    border: 5px solid #fff;
+    animation: bob 4.8s ease-in-out infinite;
+  }
+  .cta-sq i:nth-child(2) {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    animation-delay: 0.4s;
+  }
+  .cta-sq i:nth-child(3) {
+    animation-delay: 0.8s;
+  }
+
+  @media (max-width: 900px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+    }
+    .toys {
+      position: absolute;
+      top: -10px;
+      right: -12%;
+      width: 56%;
+      height: 220px;
+      opacity: 0.32;
+      z-index: -1;
+    }
+    .bento-cell {
+      grid-column: span 12;
+    }
+    .svc-grid,
+    .art-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (min-width: 901px) and (max-width: 1100px) {
+    .art-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,77 @@
+---
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../consts";
+import { getLang, swapLangPath, withBase } from "../i18n";
+import ogImage from "../assets/brand/overlight-logo-original.png";
+import { getImage } from "astro:assets";
+
+interface Props {
+  title?: string;
+  description?: string;
+  altPath?: string;
+}
+
+const lang = getLang(Astro.url);
+const { title, description = SITE.description[lang], altPath } = Astro.props;
+const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const alt = altPath ?? swapLangPath(Astro.url);
+const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 82 });
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={lang === "id" ? "en" : "id"} href={new URL(alt, Astro.site)} />
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="icon" href={withBase("/favicon.svg")} type="image/svg+xml" />
+    <meta name="theme-color" content="#fbfaff" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.studio} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(og.src, Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      document.documentElement.classList.add("js");
+    </script>
+    <slot name="head" />
+  </head>
+  <body>
+    <slot name="before" />
+    <Nav altPath={alt} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer altPath={alt} />
+
+    <script>
+      // Elemen [data-reveal] muncul pelan saat masuk layar.
+      const els = document.querySelectorAll<HTMLElement>("[data-reveal]");
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add("in");
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+        );
+        els.forEach((el) => io.observe(el));
+      } else {
+        els.forEach((el) => el.classList.add("in"));
+      }
+    </script>
+  </body>
+</html>

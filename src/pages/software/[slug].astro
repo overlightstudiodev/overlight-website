@@ -1,0 +1,15 @@
+---
+import type { GetStaticPaths } from "astro";
+import SoftwareDetail from "../../views/SoftwareDetail.astro";
+import { getSoftware } from "../../lib/content";
+import { entrySlug } from "../../i18n";
+
+export const getStaticPaths = (async () => {
+  const entries = await getSoftware("id");
+  return entries.map((entry) => ({ params: { slug: entrySlug(entry.id) }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+---
+
+<SoftwareDetail entry={entry} lang="id" />

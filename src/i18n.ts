@@ -1,0 +1,186 @@
+export const LANGS = ["id", "en"] as const;
+export type Lang = (typeof LANGS)[number];
+
+/** Sub-folder situs, mis. "/overlight-website" di GitHub Pages. Kosong kalau di root domain. */
+export const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+
+/** Tambah sub-folder situs di depan path absolut ("/favicon.svg" -> "/overlight-website/favicon.svg"). */
+export function withBase(path: string): string {
+  return BASE + (path.startsWith("/") ? path : `/${path}`);
+}
+
+/** Link absolut di HTML hasil Markdown ("/software/x") ikut diberi sub-folder situs. */
+export function baseLinks(html: string): string {
+  if (!BASE) return html;
+  return html.replace(/href="(\/(?!\/)[^"]*)"/g, (m, p: string) =>
+    p === BASE || p.startsWith(BASE + "/") ? m : `href="${BASE}${p}"`,
+  );
+}
+
+function stripBase(pathname: string): string {
+  if (BASE && (pathname === BASE || pathname.startsWith(BASE + "/"))) return pathname.slice(BASE.length) || "/";
+  return pathname;
+}
+
+export function getLang(url: URL): Lang {
+  const p = stripBase(url.pathname);
+  return p === "/en" || p.startsWith("/en/") ? "en" : "id";
+}
+
+/** Path dalam bahasa tertentu. `path` selalu ditulis versi Indonesia (tanpa /en). */
+export function href(lang: Lang, path = "/"): string {
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (lang === "id") return withBase(clean);
+  return withBase(clean === "/" ? "/en/" : clean.startsWith("/#") ? `/en/${clean.slice(1)}` : `/en${clean}`);
+}
+
+/** Path yang sama di bahasa lain. */
+export function swapLangPath(url: URL): string {
+  const lang = getLang(url);
+  const p = stripBase(url.pathname);
+  const idPath = lang === "en" ? p.replace(/^\/en(?=\/|$)/, "") || "/" : p;
+  return href(lang === "en" ? "id" : "en", idPath);
+}
+
+/** Entry koleksi memakai id "<lang>/<slug>". */
+export function entryLang(id: string): Lang {
+  return id.startsWith("en/") ? "en" : "id";
+}
+export function entrySlug(id: string): string {
+  return id.split("/").slice(1).join("/");
+}
+
+export function formatDate(d: Date, lang: Lang): string {
+  return d.toLocaleDateString(lang === "en" ? "en-GB" : "id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+const dict = {
+  id: {
+    "nav.work": "Karya",
+    "nav.articles": "Artikel",
+    "nav.about": "About",
+    "nav.software": "Free Software",
+    "nav.switch": "EN",
+    "nav.switchLabel": "Switch to English",
+    "nav.menu": "Menu",
+    "intro.skip": "Lewati",
+    "home.eyebrow": "Overlight Studio",
+    "home.title.a": "Kami bikin",
+    "home.title.b": "aplikasi, game,",
+    "home.title.c": "dan desain",
+    "home.title.d": "yang enak dipakai.",
+    "home.lead":
+      "Studio kreatif kecil dari Indonesia. Kami merancang, membangun, dan merawat produk digital, mulai dari ide di kertas sampai rilis di toko aplikasi.",
+    "home.work.a": "Hasil",
+    "home.work.b": "racikan kami",
+    "home.workBtn": "Lihat karya kami",
+    "home.workLead": "Dari coretan ide sampai aplikasi di HP dan laptopmu. Klik salah satu untuk intip dapurnya.",
+    "home.services": "Yang kami kerjakan",
+    "home.svc.app.t": "Aplikasi",
+    "home.svc.app.d": "Android, macOS, dan Windows. Dari prototipe sampai rilis dan pembaruan rutin.",
+    "home.svc.game.t": "Game & dunia interaktif",
+    "home.svc.game.d": "Roblox, Godot, dan web 3D. Dunia kecil yang seru buat dijelajahi.",
+    "home.svc.design.t": "Desain & motion",
+    "home.svc.design.d": "Identitas visual, UI, konten sosial media, dan video animasi.",
+    "home.latest": "Artikel terbaru",
+    "home.allArticles": "Semua artikel",
+    "home.cta.t": "Punya ide yang mau diwujudkan?",
+    "home.cta.d": "Ceritakan idemu. Kami bantu rapikan jadi produk yang siap dipakai.",
+    "home.cta.btn": "Ngobrol dengan kami",
+    "sw.title": "Free Software",
+    "sw.lead": "Aplikasi buatan Overlight yang bisa kamu pakai gratis. Klik salah satu untuk lihat fitur, cara pasang, dan link unduhnya.",
+    "sw.back": "Semua aplikasi",
+    "sw.features": "Fitur",
+    "sw.more": "Aplikasi lain",
+    "sw.soon": "Segera hadir",
+    "sw.free": "Gratis",
+    "sw.open": "Lihat detail",
+    "status.live": "Tersedia",
+    "status.beta": "Beta",
+    "status.soon": "Segera hadir",
+    "art.title": "Artikel",
+    "art.lead": "Catatan dari dapur Overlight: cerita di balik produk, proses, dan hal-hal yang kami pelajari.",
+    "art.back": "Semua artikel",
+    "art.related": "Aplikasi terkait",
+    "art.read": "Baca",
+    "about.title": "About",
+    "foot.tag": "Your creative partner.",
+    "foot.rights": "Hak cipta dilindungi.",
+    "notfound.t": "Halaman tidak ditemukan",
+    "notfound.d": "Mungkin link-nya salah ketik, atau halamannya sudah pindah.",
+    "notfound.btn": "Kembali ke home",
+  },
+  en: {
+    "nav.work": "Work",
+    "nav.articles": "Articles",
+    "nav.about": "About",
+    "nav.software": "Free Software",
+    "nav.switch": "ID",
+    "nav.switchLabel": "Ganti ke Bahasa Indonesia",
+    "nav.menu": "Menu",
+    "intro.skip": "Skip",
+    "home.eyebrow": "Overlight Studio",
+    "home.title.a": "We make",
+    "home.title.b": "apps, games,",
+    "home.title.c": "and design",
+    "home.title.d": "people enjoy using.",
+    "home.lead":
+      "A small creative studio from Indonesia. We design, build, and look after digital products, from a sketch on paper to a release in the app store.",
+    "home.work.a": "What we've",
+    "home.work.b": "cooked up",
+    "home.workBtn": "See our work",
+    "home.workLead": "From a scribbled idea to an app on your phone and laptop. Pick one to take a peek inside.",
+    "home.services": "What we do",
+    "home.svc.app.t": "Apps",
+    "home.svc.app.d": "Android, macOS, and Windows. From prototype to release and regular updates.",
+    "home.svc.game.t": "Games & interactive worlds",
+    "home.svc.game.d": "Roblox, Godot, and 3D on the web. Small worlds that are fun to explore.",
+    "home.svc.design.t": "Design & motion",
+    "home.svc.design.d": "Visual identity, UI, social media content, and animated video.",
+    "home.latest": "Latest articles",
+    "home.allArticles": "All articles",
+    "home.cta.t": "Got an idea you want to build?",
+    "home.cta.d": "Tell us about it. We will help shape it into a product people can use.",
+    "home.cta.btn": "Talk to us",
+    "sw.title": "Free Software",
+    "sw.lead": "Apps made by Overlight that you can use for free. Pick one to see its features, how to install it, and where to download.",
+    "sw.back": "All apps",
+    "sw.features": "Features",
+    "sw.more": "More apps",
+    "sw.soon": "Coming soon",
+    "sw.free": "Free",
+    "sw.open": "See details",
+    "status.live": "Available",
+    "status.beta": "Beta",
+    "status.soon": "Coming soon",
+    "art.title": "Articles",
+    "art.lead": "Notes from the Overlight kitchen: stories behind our products, our process, and what we learned along the way.",
+    "art.back": "All articles",
+    "art.related": "Related app",
+    "art.read": "Read",
+    "about.title": "About",
+    "foot.tag": "Your creative partner.",
+    "foot.rights": "All rights reserved.",
+    "notfound.t": "Page not found",
+    "notfound.d": "The link may have a typo, or the page has moved.",
+    "notfound.btn": "Back to home",
+  },
+} as const;
+
+export type Key = keyof (typeof dict)["id"];
+
+export function t(lang: Lang, key: Key): string {
+  return dict[lang][key];
+}
+
+export const PLATFORM_LABEL: Record<string, string> = {
+  android: "Android",
+  ios: "iOS",
+  macos: "macOS",
+  windows: "Windows",
+  web: "Web",
+};
