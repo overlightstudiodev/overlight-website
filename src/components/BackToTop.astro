@@ -16,9 +16,17 @@ const lang = getLang(Astro.url);
     <circle class="totop-track" cx="28" cy="28" r="25" />
     <circle class="totop-bar" cx="28" cy="28" r="25" pathLength="100" data-totop-bar />
   </svg>
-  <svg class="totop-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" />
-  </svg>
+  <span class="tt-bloop" aria-hidden="true">
+    <span class="tt-tuft"></span>
+    <span class="tt-body">
+      <span class="tt-eye"><i></i></span><span class="tt-eye"><i></i></span>
+      <span class="tt-blush"></span><span class="tt-blush"></span>
+    </span>
+  </span>
+  <span class="tt-float f1" aria-hidden="true"></span>
+  <span class="tt-float f2" aria-hidden="true"></span>
+  <span class="tt-puff" aria-hidden="true"><i></i><i></i><i></i></span>
+  <span class="tt-say" aria-hidden="true">{t(lang, "totop.say")}</span>
 </button>
 
 <script>
@@ -74,6 +82,7 @@ const lang = getLang(Astro.url);
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 14px 30px -14px rgb(76 52 160 / 0.45);
     color: var(--violet);
     cursor: pointer;
+    overflow: visible;
     opacity: 0;
     visibility: hidden;
     transform: translateY(18px) scale(0.6);
@@ -117,31 +126,185 @@ const lang = getLang(Astro.url);
     stroke-dasharray: 100;
     stroke-dashoffset: 100;
   }
-  .totop-arrow {
-    width: 22px;
-    height: 22px;
-    transition: transform 0.45s var(--boing);
+  /* ---- Bloop kecil di dalam tombol ---- */
+  .tt-bloop {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    animation: tt-bob 1.8s ease-in-out infinite;
   }
-  .totop:hover .totop-arrow {
-    animation: hop 0.8s var(--boing) infinite;
+  .tt-body {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 26px;
+    border-radius: 44% 44% 34% 34%;
+    background: linear-gradient(160deg, #8fd0f0, #7d55cc);
+    box-shadow: inset -3px -3px 0 rgb(0 0 0 / 0.12);
+    transform-origin: 50% 100%;
   }
-  @keyframes hop {
+  /* jambul berbentuk panah ke atas: tetap jelas ini tombol "ke atas" */
+  .tt-tuft {
+    position: absolute;
+    left: 50%;
+    top: -5px;
+    width: 9px;
+    height: 9px;
+    border-left: 2.6px solid #7d55cc;
+    border-top: 2.6px solid #7d55cc;
+    border-radius: 2px 0 0 0;
+    translate: -50% 0;
+    rotate: 45deg;
+    transform-origin: 50% 100%;
+    animation: tt-tuft 1.8s ease-in-out infinite;
+  }
+  .tt-eye {
+    position: absolute;
+    top: 6px;
+    width: 7px;
+    height: 9px;
+    border-radius: 999px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+    animation: tt-blink 3.6s infinite;
+  }
+  .tt-eye:nth-of-type(1) { left: 6px; }
+  .tt-eye:nth-of-type(2) { right: 6px; }
+  .tt-eye i {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #1b1830;
+    animation: tt-look 5s ease-in-out infinite;
+  }
+  .tt-blush {
+    position: absolute;
+    top: 15px;
+    width: 5px;
+    height: 3px;
+    border-radius: 50%;
+    background: #ff9db5;
+  }
+  .tt-blush:nth-of-type(3) { left: 3px; }
+  .tt-blush:nth-of-type(4) { right: 3px; }
+
+  /* panah kecil yang melayang naik sesekali */
+  .tt-float {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    width: 6px;
+    height: 6px;
+    border-left: 2px solid var(--violet);
+    border-top: 2px solid var(--violet);
+    rotate: 45deg;
+    opacity: 0;
+    pointer-events: none;
+    animation: tt-float 3s ease-out infinite;
+  }
+  .f1 { margin-left: -16px; }
+  .f2 { margin-left: 12px; animation-delay: 1.5s; border-color: var(--cyan); }
+
+  /* gelembung "Ke atas!" saat disorot */
+  .tt-say {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    padding: 6px 11px;
+    border-radius: 12px 12px 4px 12px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 750;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    translate: 8px -50%;
+    scale: 0.6;
+    transform-origin: right center;
+    transition: opacity 0.2s ease, translate 0.45s var(--boing), scale 0.45s var(--boing);
+  }
+  .totop:hover .tt-say,
+  .totop:focus-visible .tt-say {
+    opacity: 1;
+    translate: 0 -50%;
+    scale: 1;
+  }
+  .totop:hover .tt-bloop {
+    animation: tt-jump 0.7s cubic-bezier(0.3, 0, 0.3, 1) infinite;
+  }
+
+  /* semburan kotak-kotak saat meluncur */
+  .tt-puff {
+    position: absolute;
+    left: 50%;
+    bottom: 8px;
+    pointer-events: none;
+  }
+  .tt-puff i {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    border: 2px solid var(--violet);
+    opacity: 0;
+  }
+
+  .totop.launch .tt-bloop {
+    animation: tt-launch 0.9s cubic-bezier(0.5, 0, 0.2, 1);
+  }
+  .totop.launch .tt-puff i {
+    animation: tt-puff 0.7s ease-out;
+  }
+  .totop.launch .tt-puff i:nth-child(1) { --dx: -12px; }
+  .totop.launch .tt-puff i:nth-child(2) { --dx: 0px; border-color: var(--cyan); animation-delay: 0.05s; }
+  .totop.launch .tt-puff i:nth-child(3) { --dx: 12px; border-color: var(--purple); animation-delay: 0.1s; }
+
+  @keyframes tt-bob {
     0%, 100% { transform: translateY(1px); }
-    45% { transform: translateY(-4px); }
+    50% { transform: translateY(-3px); }
   }
-  /* saat diklik: panah melesat ke atas lalu muncul lagi dari bawah */
-  .totop.launch .totop-arrow {
-    animation: launch 0.7s cubic-bezier(0.5, 0, 0.2, 1);
+  @keyframes tt-tuft {
+    0%, 100% { rotate: 45deg; }
+    50% { rotate: 35deg; }
   }
-  @keyframes launch {
-    0% { transform: none; opacity: 1; }
-    45% { transform: translateY(-26px); opacity: 0; }
-    46% { transform: translateY(20px); opacity: 0; }
+  @keyframes tt-blink {
+    0%, 90%, 100% { scale: 1 1; }
+    94% { scale: 1 0.12; }
+  }
+  @keyframes tt-look {
+    0%, 30% { translate: 0 1px; }
+    40%, 70% { translate: 0 -2px; }
+    78%, 88% { translate: 1.5px -1px; }
+    100% { translate: 0 1px; }
+  }
+  @keyframes tt-float {
+    0% { opacity: 0; translate: 0 0; }
+    15% { opacity: 1; }
+    60%, 100% { opacity: 0; translate: 0 -26px; }
+  }
+  @keyframes tt-jump {
+    0%, 100% { transform: translateY(1px) scale(1.12, 0.88); }
+    40% { transform: translateY(-7px) scale(0.92, 1.1); }
+    70% { transform: translateY(-2px) scale(1, 1); }
+  }
+  /* meluncur keluar ke atas, lalu muncul lagi dari bawah */
+  @keyframes tt-launch {
+    0% { transform: scale(1.15, 0.8); opacity: 1; }
+    40% { transform: translateY(-46px) scale(0.85, 1.25); opacity: 0; }
+    41% { transform: translateY(28px); opacity: 0; }
     100% { transform: none; opacity: 1; }
   }
+  @keyframes tt-puff {
+    0% { opacity: 1; transform: translate(-50%, 0) scale(0.6) rotate(0deg); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), 16px) scale(1.2) rotate(90deg); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .totop,
-    .totop-arrow {
+    .totop * {
       transition: none;
       animation: none !important;
     }
