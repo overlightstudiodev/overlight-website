@@ -70,7 +70,12 @@ const isActive = (m: string) => {
   <div class="sheet" id="nav-sheet" data-sheet>
     {
       links.map((l, i) => (
-        <a href={l.to} class="sheet-link" style={`--i:${i}`}>
+        <a
+          href={l.to}
+          class:list={["sheet-link", { active: isActive(l.match) }]}
+          style={`--i:${i}`}
+          aria-current={isActive(l.match) ? "page" : undefined}
+        >
           {l.label}
         </a>
       ))
@@ -369,40 +374,59 @@ const isActive = (m: string) => {
     }
     .sheet {
       display: grid;
-      gap: 4px;
       margin: 0 calc(var(--gutter) - 8px);
       /* tertutup: tanpa padding supaya tidak menambah tinggi header (dan tidak menghalangi klik) */
-      padding: 0 22px;
+      padding: 0 8px;
       max-height: 0;
       overflow: hidden;
       opacity: 0;
-      border-radius: 24px;
-      background: rgb(255 255 255 / 0.66);
+      border-radius: 22px;
+      background: rgb(255 255 255 / 0.72);
       backdrop-filter: blur(22px) saturate(1.9);
       box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.8), 0 18px 40px -20px rgb(76 52 160 / 0.35);
       transition: max-height 0.45s ease, opacity 0.3s ease, padding 0.3s ease;
     }
     .open .sheet {
-      max-height: 480px;
-      padding: 8px 22px 20px;
+      max-height: 420px;
+      padding: 6px 8px 8px;
       opacity: 1;
     }
     .sheet-link {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 30px;
-      font-weight: 750;
-      letter-spacing: -0.02em;
-      padding: 8px 0;
-      transform: translateY(10px);
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--ink-2);
+      transform: translateY(8px);
       opacity: 0;
-      transition: transform 0.5s var(--boing), opacity 0.3s ease;
-      transition-delay: calc(var(--i) * 50ms);
+      transition: transform 0.5s var(--boing), opacity 0.3s ease, background-color 0.2s ease;
+      transition-delay: calc(var(--i) * 40ms);
+    }
+    /* garis tipis pemisah antar menu */
+    .sheet-link:not(:first-child):not(.sheet-cta) {
+      box-shadow: inset 0 1px 0 rgb(27 24 48 / 0.06);
+    }
+    .sheet-link.active {
+      color: var(--violet);
+      font-weight: 700;
+      background: rgb(125 85 204 / 0.09);
+      box-shadow: none;
+    }
+    .sheet-link.active + .sheet-link {
+      box-shadow: none;
     }
     .sheet-cta {
-      font-size: 20px;
-      color: var(--violet);
+      justify-content: center;
+      margin-top: 6px;
+      font-size: 15px;
+      font-weight: 650;
+      color: var(--ink);
+      background: #fff;
+      box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px -10px rgb(76 52 160 / 0.35);
     }
     .open .sheet-link {
       transform: none;
