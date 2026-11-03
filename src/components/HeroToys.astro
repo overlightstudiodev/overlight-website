@@ -311,6 +311,8 @@ const c = {
   .toys {
     position: relative;
     height: clamp(280px, 30vw, 390px);
+    /* ruang di atas kotak untuk gelembung, supaya tidak mepet dengan header */
+    margin-top: clamp(44px, 4vw, 64px);
     pointer-events: none;
   }
   .toy {
