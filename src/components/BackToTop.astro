@@ -1,45 +1,32 @@
 ---
-/** Tombol kembali ke atas (kanan bawah). Muncul setelah digulir; cincin menunjukkan progres gulir. */
+/** Tombol kembali ke atas (kanan bawah): lingkaran gradasi berisi Bloop putih + tulisan di bawahnya. */
 import { getLang, t } from "../i18n";
 const lang = getLang(Astro.url);
 ---
 
-<button class="totop" type="button" aria-label={t(lang, "totop")} title={t(lang, "totop")} data-totop>
-  <svg class="totop-ring" viewBox="0 0 56 56" aria-hidden="true">
-    <defs>
-      <linearGradient id="totop-g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#74bcde" />
-        <stop offset="0.55" stop-color="#7d55cc" />
-        <stop offset="1" stop-color="#a660d8" />
-      </linearGradient>
-    </defs>
-    <circle class="totop-track" cx="28" cy="28" r="25" />
-    <circle class="totop-bar" cx="28" cy="28" r="25" pathLength="100" data-totop-bar />
-  </svg>
-  <span class="tt-bloop" aria-hidden="true">
-    <span class="tt-tuft"></span>
-    <span class="tt-body">
-      <span class="tt-eye"><i></i></span><span class="tt-eye"><i></i></span>
-      <span class="tt-blush"></span><span class="tt-blush"></span>
+<button class="totop" type="button" aria-label={t(lang, "totop")} data-totop>
+  <span class="tt-circle" aria-hidden="true">
+    <span class="tt-bloop">
+      <span class="tt-tuft"></span>
+      <span class="tt-body">
+        <span class="tt-eye"></span><span class="tt-eye"></span>
+        <span class="tt-blush"></span><span class="tt-blush"></span>
+      </span>
     </span>
+    <span class="tt-float f1"></span>
+    <span class="tt-float f2"></span>
+    <span class="tt-puff"><i></i><i></i><i></i></span>
   </span>
-  <span class="tt-float f1" aria-hidden="true"></span>
-  <span class="tt-float f2" aria-hidden="true"></span>
-  <span class="tt-puff" aria-hidden="true"><i></i><i></i><i></i></span>
-  <span class="tt-say" aria-hidden="true">{t(lang, "totop.say")}</span>
+  <span class="tt-label" aria-hidden="true">{t(lang, "totop.label")}</span>
 </button>
 
 <script>
   const btn = document.querySelector<HTMLButtonElement>("[data-totop]");
-  const bar = document.querySelector<SVGCircleElement>("[data-totop-bar]");
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (btn && bar) {
+  if (btn) {
     let ticking = false;
     const update = () => {
       ticking = false;
-      const max = document.documentElement.scrollHeight - innerHeight;
-      const p = max > 0 ? Math.min(1, scrollY / max) : 0;
-      bar.style.strokeDashoffset = String(100 - p * 100);
       btn.classList.toggle("show", scrollY > 480);
     };
     addEventListener(
@@ -52,7 +39,6 @@ const lang = getLang(Astro.url);
       },
       { passive: true },
     );
-    addEventListener("resize", update, { passive: true });
     update();
     btn.addEventListener("click", () => {
       btn.classList.remove("launch");
@@ -66,23 +52,17 @@ const lang = getLang(Astro.url);
 <style>
   .totop {
     position: fixed;
-    right: max(18px, env(safe-area-inset-right));
-    bottom: max(18px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
     z-index: 60;
     display: grid;
-    place-items: center;
-    width: 56px;
-    height: 56px;
+    justify-items: center;
+    gap: 6px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 0.85);
-    backdrop-filter: blur(14px) saturate(1.6);
-    -webkit-backdrop-filter: blur(14px) saturate(1.6);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 14px 30px -14px rgb(76 52 160 / 0.45);
-    color: var(--violet);
+    background: none;
+    font: inherit;
     cursor: pointer;
-    overflow: visible;
     opacity: 0;
     visibility: hidden;
     transform: translateY(18px) scale(0.6);
@@ -99,38 +79,53 @@ const lang = getLang(Astro.url);
     transform: none;
     transition-delay: 0s;
   }
-  .totop:hover {
-    transform: translateY(-3px) scale(1.06);
+
+  /* lingkaran penuh bergradasi Overlight */
+  .tt-circle {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: var(--grad);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35), 0 16px 30px -12px rgb(125 85 204 / 0.6);
+    transition: transform 0.5s var(--boing), box-shadow 0.3s ease;
   }
-  .totop:active {
+  .totop:hover .tt-circle {
+    transform: translateY(-3px) scale(1.06);
+    box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.35), 0 20px 36px -12px rgb(125 85 204 / 0.7);
+  }
+  .totop:active .tt-circle {
     transform: scale(0.94);
   }
-  .totop-ring {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
+  .totop:focus-visible {
+    outline: none;
   }
-  .totop-track,
-  .totop-bar {
-    fill: none;
-    stroke-width: 3;
+  .totop:focus-visible .tt-circle {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
   }
-  .totop-track {
-    stroke: rgb(125 85 204 / 0.12);
+
+  /* tulisan di bawah lingkaran */
+  .tt-label {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.9), 0 6px 14px -8px rgb(76 52 160 / 0.4);
+    color: var(--violet);
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
   }
-  .totop-bar {
-    stroke: url(#totop-g);
-    stroke-linecap: round;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 100;
-  }
-  /* ---- Bloop kecil di dalam tombol ---- */
+
+  /* ---- Bloop putih ---- */
   .tt-bloop {
     position: relative;
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     animation: tt-bob 1.8s ease-in-out infinite;
   }
   .tt-body {
@@ -138,21 +133,21 @@ const lang = getLang(Astro.url);
     left: 0;
     right: 0;
     bottom: 0;
-    height: 26px;
+    height: 31px;
     border-radius: 44% 44% 34% 34%;
-    background: linear-gradient(160deg, #8fd0f0, #7d55cc);
-    box-shadow: inset -3px -3px 0 rgb(0 0 0 / 0.12);
+    background: #fff;
+    box-shadow: inset -3px -3px 0 rgb(125 85 204 / 0.18), 0 4px 8px -4px rgb(27 24 48 / 0.35);
     transform-origin: 50% 100%;
   }
-  /* jambul berbentuk panah ke atas: tetap jelas ini tombol "ke atas" */
+  /* jambul berbentuk panah ke atas */
   .tt-tuft {
     position: absolute;
     left: 50%;
-    top: -5px;
-    width: 9px;
-    height: 9px;
-    border-left: 2.6px solid #7d55cc;
-    border-top: 2.6px solid #7d55cc;
+    top: -7px;
+    width: 11px;
+    height: 11px;
+    border-left: 3px solid #fff;
+    border-top: 3px solid #fff;
     border-radius: 2px 0 0 0;
     translate: -50% 0;
     rotate: 45deg;
@@ -161,106 +156,71 @@ const lang = getLang(Astro.url);
   }
   .tt-eye {
     position: absolute;
-    top: 6px;
-    width: 7px;
+    top: 9px;
+    width: 6px;
     height: 9px;
     border-radius: 999px;
-    background: #fff;
-    display: grid;
-    place-items: center;
-    animation: tt-blink 3.6s infinite;
-  }
-  .tt-eye:nth-of-type(1) { left: 6px; }
-  .tt-eye:nth-of-type(2) { right: 6px; }
-  .tt-eye i {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
     background: #1b1830;
-    animation: tt-look 5s ease-in-out infinite;
+    animation: tt-blink 3.6s infinite, tt-look 5s ease-in-out infinite;
   }
+  .tt-eye:nth-of-type(1) { left: 9px; }
+  .tt-eye:nth-of-type(2) { right: 9px; }
   .tt-blush {
     position: absolute;
-    top: 15px;
-    width: 5px;
-    height: 3px;
+    top: 19px;
+    width: 6px;
+    height: 3.5px;
     border-radius: 50%;
     background: #ff9db5;
   }
-  .tt-blush:nth-of-type(3) { left: 3px; }
-  .tt-blush:nth-of-type(4) { right: 3px; }
+  .tt-blush:nth-of-type(3) { left: 4px; }
+  .tt-blush:nth-of-type(4) { right: 4px; }
 
-  /* panah kecil yang melayang naik sesekali */
+  /* panah putih kecil yang melayang naik */
   .tt-float {
     position: absolute;
     left: 50%;
-    bottom: 10px;
-    width: 6px;
-    height: 6px;
-    border-left: 2px solid var(--violet);
-    border-top: 2px solid var(--violet);
+    bottom: 12px;
+    width: 7px;
+    height: 7px;
+    border-left: 2.4px solid rgb(255 255 255 / 0.9);
+    border-top: 2.4px solid rgb(255 255 255 / 0.9);
     rotate: 45deg;
     opacity: 0;
     pointer-events: none;
     animation: tt-float 3s ease-out infinite;
   }
-  .f1 { margin-left: -16px; }
-  .f2 { margin-left: 12px; animation-delay: 1.5s; border-color: var(--cyan); }
+  .f1 { margin-left: -22px; }
+  .f2 { margin-left: 16px; animation-delay: 1.5s; }
 
-  /* gelembung "Ke atas!" saat disorot */
-  .tt-say {
-    position: absolute;
-    right: calc(100% + 10px);
-    top: 50%;
-    padding: 6px 11px;
-    border-radius: 12px 12px 4px 12px;
-    background: var(--ink);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 750;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    translate: 8px -50%;
-    scale: 0.6;
-    transform-origin: right center;
-    transition: opacity 0.2s ease, translate 0.45s var(--boing), scale 0.45s var(--boing);
-  }
-  .totop:hover .tt-say,
-  .totop:focus-visible .tt-say {
-    opacity: 1;
-    translate: 0 -50%;
-    scale: 1;
-  }
   .totop:hover .tt-bloop {
     animation: tt-jump 0.7s cubic-bezier(0.3, 0, 0.3, 1) infinite;
   }
 
-  /* semburan kotak-kotak saat meluncur */
+  /* semburan kotak putih saat meluncur */
   .tt-puff {
     position: absolute;
     left: 50%;
-    bottom: 8px;
+    bottom: 10px;
     pointer-events: none;
   }
   .tt-puff i {
     position: absolute;
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 2px;
-    border: 2px solid var(--violet);
+    border: 2px solid #fff;
     opacity: 0;
   }
-
   .totop.launch .tt-bloop {
     animation: tt-launch 0.9s cubic-bezier(0.5, 0, 0.2, 1);
   }
   .totop.launch .tt-puff i {
     animation: tt-puff 0.7s ease-out;
   }
-  .totop.launch .tt-puff i:nth-child(1) { --dx: -12px; }
-  .totop.launch .tt-puff i:nth-child(2) { --dx: 0px; border-color: var(--cyan); animation-delay: 0.05s; }
-  .totop.launch .tt-puff i:nth-child(3) { --dx: 12px; border-color: var(--purple); animation-delay: 0.1s; }
+  .totop.launch .tt-puff i:nth-child(1) { --dx: -14px; }
+  .totop.launch .tt-puff i:nth-child(2) { --dx: 0px; animation-delay: 0.05s; }
+  .totop.launch .tt-puff i:nth-child(3) { --dx: 14px; animation-delay: 0.1s; }
 
   @keyframes tt-bob {
     0%, 100% { transform: translateY(1px); }
@@ -283,23 +243,23 @@ const lang = getLang(Astro.url);
   @keyframes tt-float {
     0% { opacity: 0; translate: 0 0; }
     15% { opacity: 1; }
-    60%, 100% { opacity: 0; translate: 0 -26px; }
+    60%, 100% { opacity: 0; translate: 0 -30px; }
   }
   @keyframes tt-jump {
     0%, 100% { transform: translateY(1px) scale(1.12, 0.88); }
-    40% { transform: translateY(-7px) scale(0.92, 1.1); }
+    40% { transform: translateY(-8px) scale(0.92, 1.1); }
     70% { transform: translateY(-2px) scale(1, 1); }
   }
   /* meluncur keluar ke atas, lalu muncul lagi dari bawah */
   @keyframes tt-launch {
     0% { transform: scale(1.15, 0.8); opacity: 1; }
-    40% { transform: translateY(-46px) scale(0.85, 1.25); opacity: 0; }
-    41% { transform: translateY(28px); opacity: 0; }
+    40% { transform: translateY(-56px) scale(0.85, 1.25); opacity: 0; }
+    41% { transform: translateY(32px); opacity: 0; }
     100% { transform: none; opacity: 1; }
   }
   @keyframes tt-puff {
     0% { opacity: 1; transform: translate(-50%, 0) scale(0.6) rotate(0deg); }
-    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), 16px) scale(1.2) rotate(90deg); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), 18px) scale(1.2) rotate(90deg); }
   }
 
   @media (prefers-reduced-motion: reduce) {
