@@ -27,23 +27,10 @@ const isActive = (m: string) => {
 ---
 
 <header class="nav" data-nav>
-  <!-- blur bertingkat (8 pita) + pecahan warna RGB: konten yang lewat di belakang header makin buram ke atas -->
+  <!-- blur bertingkat (8 pita): konten yang lewat di belakang header makin buram ke atas -->
   <div class="nav-blur" aria-hidden="true">
     <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-    <em class="nav-disperse"></em>
   </div>
-  <svg class="nav-defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <filter id="ol-disperse" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-      <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="r" />
-      <feOffset in="r" dx="-5" dy="1" result="rs" />
-      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="g" />
-      <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="b" />
-      <feOffset in="b" dx="5" dy="-1" result="bs" />
-      <feBlend in="rs" in2="g" mode="screen" result="rg" />
-      <feBlend in="rg" in2="bs" mode="screen" />
-    </filter>
-  </svg>
-
   <div class="wrap nav-inner">
     <a href={href(lang, "/")} class="nav-brand" aria-label="Overlight home">
       <BrandMark size={38} mark={false} />
@@ -132,8 +119,7 @@ const isActive = (m: string) => {
     opacity: 0;
     transition: opacity 0.35s ease;
   }
-  .nav-blur i,
-  .nav-blur em {
+  .nav-blur i {
     position: absolute;
     inset: 0;
   }
@@ -142,6 +128,7 @@ const isActive = (m: string) => {
     /* tanpa brightness: latar halaman sedikit ungu, brightness membuatnya jadi pita putih */
     backdrop-filter: blur(var(--b)) saturate(1.25);
     -webkit-backdrop-filter: blur(var(--b)) saturate(1.25);
+    -webkit-mask: linear-gradient(to top, transparent var(--m0), #000 var(--m1), #000 var(--m2), transparent var(--m3));
     mask: linear-gradient(to top, transparent var(--m0), #000 var(--m1), #000 var(--m2), transparent var(--m3));
   }
   .nav-blur i:nth-child(1) { --b: 0.25px; --m0: 0%; --m1: 12.5%; --m2: 25%; --m3: 37.5%; }
@@ -152,27 +139,6 @@ const isActive = (m: string) => {
   .nav-blur i:nth-child(6) { --b: 7.5px; --m0: 62.5%; --m1: 75%; --m2: 87.5%; --m3: 100%; }
   .nav-blur i:nth-child(7) { --b: 11px; --m0: 75%; --m1: 87.5%; --m2: 100%; --m3: 100%; }
   .nav-blur i:nth-child(8) { --b: 16px; --m0: 85%; --m1: 95%; --m2: 100%; --m3: 100%; }
-  /* pecahan warna RGB ala kaca cair (Chrome/Edge; Safari cukup blur) */
-  .nav-disperse {
-    top: -12px !important;
-    backdrop-filter: url(#ol-disperse);
-    -webkit-backdrop-filter: url(#ol-disperse);
-    /* pudar di bawah, dan di tepi kiri/kanan supaya geseran warna tidak jadi garis di pinggir layar */
-    -webkit-mask:
-      linear-gradient(#000 0%, #000 30%, transparent 85%),
-      linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
-    -webkit-mask-composite: source-in;
-    mask:
-      linear-gradient(#000 0%, #000 30%, transparent 85%),
-      linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
-    mask-composite: intersect;
-  }
-  .nav-defs {
-    position: absolute;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-  }
   .nav.scrolled .nav-blur,
   .nav.open .nav-blur {
     opacity: 1;
