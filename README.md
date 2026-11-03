@@ -50,6 +50,6 @@ Folder internal (`docs/source-assets/`, `docs/project-memory.md`, `AGENTS.md`) s
 - `src/components/Services.astro`: bagian Layanan di home (tab berganti otomatis + visual per layanan). Teks ID/EN ada di komponen itu.
 
 - `src/components/Intro.astro`: intro home (kotak meletup → tulisan → jendela logo membesar membuka halaman).
-- `src/assets/brand/overlight-logo.svg`: logo hasil tracing dari PNG asli, dipecah per bagian (`ol-s1/s2/s3/ring/over/light/tag`) untuk animasi. `overlight-mark.svg` = simbol tanpa teks (juga `public/favicon.svg`).
+- `src/assets/brand/overlight-logo.svg`: logo hasil tracing dari PNG asli, dipecah per bagian (`ol-s1/s2/s3/ring/over/light/tag`) untuk animasi. Simbol tanpa teks ada di `public/favicon.svg`.
 - `src/views/*`: isi halaman (dipakai bersama route ID dan EN di `src/pages/`).
 - `src/i18n.ts`: teks UI dua bahasa + helper path.

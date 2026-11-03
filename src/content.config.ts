@@ -54,7 +54,6 @@ const articles = defineCollection({
     tags: z.array(z.string()).default([]),
     // slug aplikasi terkait (opsional), untuk warna & tautan
     software: z.string().optional(),
-    author: z.string().default("Tim Overlight"),
     draft: z.boolean().default(false),
   }),
 });

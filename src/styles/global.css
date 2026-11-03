@@ -16,7 +16,6 @@
   --purple: #a660d8;
   --grad: linear-gradient(110deg, var(--cyan) 0%, var(--blue) 38%, var(--violet) 70%, var(--purple) 100%);
 
-  --r-sm: 12px;
   --r: 22px;
   --r-lg: 34px;
   --shadow: 0 1px 0 rgb(27 24 48 / 0.03), 0 18px 40px -26px rgb(76 52 160 / 0.35);

@@ -1,8 +1,7 @@
-export const LANGS = ["id", "en"] as const;
-export type Lang = (typeof LANGS)[number];
+export type Lang = "id" | "en";
 
 /** Sub-folder situs, mis. "/overlight-website" di GitHub Pages. Kosong kalau di root domain. */
-export const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+const BASE = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 
 /** Tambah sub-folder situs di depan path absolut ("/favicon.svg" -> "/overlight-website/favicon.svg"). */
 export function withBase(path: string): string {
@@ -64,7 +63,6 @@ const dict = {
     "nav.articles": "Artikel",
     "nav.about": "About",
     "nav.software": "Free Software",
-    "nav.switch": "EN",
     "nav.switchLabel": "Switch to English",
     "nav.menu": "Menu",
     "nav.home": "Beranda",
@@ -91,17 +89,13 @@ const dict = {
     "home.cta.d": "Ceritakan idemu. Kami bantu rapikan jadi produk yang siap dipakai.",
     "home.cta.btn": "Chat WhatsApp",
     "home.cta.mail": "Kirim email",
-    "contact.wa": "WhatsApp",
-    "contact.mail": "Email",
     "contact.where": "Cibinong, Bogor, Indonesia",
     "sw.title": "Free Software",
     "sw.lead": "Aplikasi buatan Overlight yang bisa kamu pakai gratis. Klik salah satu untuk lihat fitur, cara pasang, dan link unduhnya.",
     "sw.back": "Semua aplikasi",
-    "sw.features": "Fitur",
     "sw.more": "Aplikasi lain",
     "sw.soon": "Segera hadir",
     "sw.free": "Gratis",
-    "sw.open": "Lihat detail",
     "status.live": "Tersedia",
     "status.beta": "Beta",
     "status.soon": "Segera hadir",
@@ -111,7 +105,6 @@ const dict = {
     "art.related": "Aplikasi terkait",
     "art.read": "Baca",
     "about.title": "About",
-    "foot.tag": "Your creative partner.",
     "foot.rights": "Hak cipta dilindungi.",
     "notfound.t": "Halaman tidak ditemukan",
     "notfound.d": "Mungkin link-nya salah ketik, atau halamannya sudah pindah.",
@@ -122,7 +115,6 @@ const dict = {
     "nav.articles": "Articles",
     "nav.about": "About",
     "nav.software": "Free Software",
-    "nav.switch": "ID",
     "nav.switchLabel": "Ganti ke Bahasa Indonesia",
     "nav.menu": "Menu",
     "nav.home": "Home",
@@ -149,17 +141,13 @@ const dict = {
     "home.cta.d": "Tell us about it. We will help shape it into a product people can use.",
     "home.cta.btn": "Chat on WhatsApp",
     "home.cta.mail": "Send an email",
-    "contact.wa": "WhatsApp",
-    "contact.mail": "Email",
     "contact.where": "Cibinong, Bogor, Indonesia",
     "sw.title": "Free Software",
     "sw.lead": "Apps made by Overlight that you can use for free. Pick one to see its features, how to install it, and where to download.",
     "sw.back": "All apps",
-    "sw.features": "Features",
     "sw.more": "More apps",
     "sw.soon": "Coming soon",
     "sw.free": "Free",
-    "sw.open": "See details",
     "status.live": "Available",
     "status.beta": "Beta",
     "status.soon": "Coming soon",
@@ -169,7 +157,6 @@ const dict = {
     "art.related": "Related app",
     "art.read": "Read",
     "about.title": "About",
-    "foot.tag": "Your creative partner.",
     "foot.rights": "All rights reserved.",
     "notfound.t": "Page not found",
     "notfound.d": "The link may have a typo, or the page has moved.",

@@ -1,19 +1,12 @@
 ---
-// Logo kecil untuk header/footer: simbol (tanpa teks) + tulisan OVER (tebal) LIGHT (tipis), seperti logo asli.
-import mark from "../assets/brand/overlight-mark.svg?raw";
+// Tulisan OVER (tebal) LIGHT (tipis) bergradasi, seperti logo asli. Dipakai di header.
 interface Props {
   size?: number;
-  /** false = hanya tulisan OVERLIGHT, tanpa simbol */
-  mark?: boolean;
 }
-const { size = 30, mark: showMark = true } = Astro.props;
-// ID gradien dibuat unik per salinan, supaya tidak bentrok dengan logo lain di halaman yang sama.
-const uid = Math.random().toString(36).slice(2, 7);
-const svg = mark.replaceAll("olg-", `olg${uid}-`);
+const { size = 30 } = Astro.props;
 ---
 
 <span class="brand" style={`--s:${size}px`}>
-  {showMark && <span class="brand-mark" aria-hidden="true" set:html={svg} />}
   <span class="brand-word"><b>OVER</b><span>LIGHT</span></span>
 </span>
 
@@ -21,17 +14,6 @@ const svg = mark.replaceAll("olg-", `olg${uid}-`);
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-  }
-  .brand-mark {
-    width: var(--s);
-    height: var(--s);
-    flex: none;
-    transition: transform 0.5s var(--boing);
-  }
-  .brand-mark :global(svg) {
-    width: 100%;
-    height: 100%;
   }
   .brand-word {
     display: inline-flex;
@@ -49,8 +31,5 @@ const svg = mark.replaceAll("olg-", `olg${uid}-`);
   .brand-word span {
     font-weight: 330;
     letter-spacing: 0.06em;
-  }
-  :global(a:hover) > .brand .brand-mark {
-    transform: rotate(-8deg) scale(1.08);
   }
 </style>
