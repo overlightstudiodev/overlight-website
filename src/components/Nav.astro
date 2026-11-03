@@ -14,7 +14,8 @@ const contact = waLink(lang);
 
 const links = [
   { label: t(lang, "nav.work"), to: href(lang, "/#porto"), match: href(lang, "/") },
-  { label: t(lang, "nav.software"), to: href(lang, "/software"), match: href(lang, "/software") },
+  // hot = menu yang ditonjolkan (kotak gradasi + pop + kilatan cahaya)
+  { label: t(lang, "nav.software"), to: href(lang, "/software"), match: href(lang, "/software"), hot: true },
   { label: t(lang, "nav.articles"), to: href(lang, "/articles"), match: href(lang, "/articles") },
   { label: t(lang, "nav.about"), to: href(lang, "/about"), match: href(lang, "/about") },
 ];
@@ -45,8 +46,12 @@ const isActive = (m: string) => {
       </a>
       {
         links.map((l) => (
-          <a href={l.to} class:list={["nav-link", { active: isActive(l.match) }]} aria-current={isActive(l.match) ? "page" : undefined}>
-            {l.label}
+          <a
+            href={l.to}
+            class:list={["nav-link", { active: isActive(l.match), "nav-hot": l.hot }]}
+            aria-current={isActive(l.match) ? "page" : undefined}
+          >
+            {l.hot ? <span class="hot-chip">{l.label}</span> : l.label}
           </a>
         ))
       }
@@ -76,7 +81,7 @@ const isActive = (m: string) => {
           style={`--i:${i}`}
           aria-current={isActive(l.match) ? "page" : undefined}
         >
-          {l.label}
+          {l.hot ? <span class="hot-text">{l.label}</span> : l.label}
         </a>
       ))
     }
@@ -221,6 +226,52 @@ const isActive = (m: string) => {
     font-weight: 700;
     background: rgb(125 85 204 / 0.09);
   }
+  /* ---- Free Software: kotak gradasi yang sesekali meletup lalu disapu kilatan cahaya ---- */
+  .nav-hot {
+    padding: 0 8px;
+  }
+  .hot-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 13px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--grad);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 6px 14px -8px rgb(125 85 204 / 0.75);
+    animation: hot-pop 5s infinite;
+    transition: transform 0.4s var(--boing), box-shadow 0.3s ease;
+  }
+  .hot-chip::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.75) 50%, transparent 70%);
+    translate: -110% 0;
+    animation: hot-sweep 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .nav-hot:hover {
+    background: none;
+  }
+  .nav-hot:hover .hot-chip {
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 18px -8px rgb(125 85 204 / 0.85);
+  }
+  /* pop pakai "scale"/"translate" (bukan transform) supaya tidak bentrok dengan efek hover */
+  @keyframes hot-pop {
+    0%, 16%, 100% { scale: 1; translate: 0 0; animation-timing-function: ease-out; }
+    5% { scale: 1.09; translate: 0 -2px; animation-timing-function: ease-in-out; }
+    10% { scale: 0.97; translate: 0 0; }
+  }
+  @keyframes hot-sweep {
+    0%, 9% { translate: -110% 0; }
+    30%, 100% { translate: 110% 0; }
+  }
+
   .nav-home {
     justify-content: center;
     width: 54px;
@@ -431,6 +482,31 @@ const isActive = (m: string) => {
     .open .sheet-link {
       transform: none;
       opacity: 1;
+    }
+    /* Free Software di menu HP: tulisan gradasi + kilatan cahaya + pop kecil */
+    .hot-text {
+      display: inline-block;
+      transform-origin: left center;
+      font-weight: 750;
+      background:
+        linear-gradient(105deg, transparent 40%, rgb(255 255 255 / 0.95) 50%, transparent 60%) 100% 0 / 250% 100% no-repeat,
+        var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: hot-pop 5s infinite, hot-shine 5s ease-in-out infinite;
+    }
+    @keyframes hot-shine {
+      0%, 9% { background-position: 100% 0, 0 0; }
+      30%, 100% { background-position: 0% 0, 0 0; }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hot-chip,
+    .hot-chip::after,
+    .hot-text {
+      animation: none;
     }
   }
 </style>
