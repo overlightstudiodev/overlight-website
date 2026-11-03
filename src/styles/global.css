@@ -94,6 +94,12 @@ p {
   border-radius: 8px;
 }
 
+/* lompat ke #porto / #layanan / #kontak tidak tertutup header yang fixed */
+section[id],
+[id="porto"] {
+  scroll-margin-top: 92px;
+}
+
 .wrap {
   width: 100%;
   max-width: var(--wrap);
