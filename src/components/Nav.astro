@@ -19,6 +19,9 @@ const links = [
   { label: t(lang, "nav.articles"), to: href(lang, "/articles"), match: href(lang, "/articles") },
   { label: t(lang, "nav.about"), to: href(lang, "/about"), match: href(lang, "/about") },
 ];
+// Animasi pembuka: tombol memisah berurutan dari tombol "hot" ke arah luar (--d = jeda ms).
+const hotAt = links.findIndex((l) => l.hot) + 1;
+const delay = (idx: number) => `--d:${Math.abs(idx - hotAt) * 70}`;
 const home = href(lang, "/").replace(/\/$/, "") || "/";
 const isActive = (m: string) => {
   const mm = m.replace(/\/$/, "") || "/";
@@ -38,17 +41,23 @@ const isActive = (m: string) => {
     </a>
 
     <nav class="nav-links" aria-label={lang === "id" ? "Utama" : "Main"}>
-      <a href={href(lang, "/")} class:list={["nav-link", "nav-home", "glass", { active: path === home }]} aria-label={t(lang, "nav.home")}>
+      <a
+        href={href(lang, "/")}
+        class:list={["nav-link", "nav-home", "glass", { active: path === home }]}
+        style={delay(0)}
+        aria-label={t(lang, "nav.home")}
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3.5 10.5 12 4l8.5 6.5" />
           <path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5h4v5h3.5a1 1 0 0 0 1-1V9.5" />
         </svg>
       </a>
       {
-        links.map((l) => (
+        links.map((l, i) => (
           <a
             href={l.to}
             class:list={["nav-link", l.hot ? "nav-hot" : "glass", { active: isActive(l.match) }]}
+            style={delay(i + 1)}
             aria-current={isActive(l.match) ? "page" : undefined}
           >
             {l.label}
@@ -103,6 +112,24 @@ const isActive = (m: string) => {
   burger?.addEventListener("click", () => setOpen(!nav?.classList.contains("open")));
   document.querySelectorAll("[data-sheet] a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
   addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
+
+  // Animasi pembuka (sekali per sesi, kelas dipasang di <head> oleh Base.astro):
+  // menu menyatu -> memisah seperti gelembung -> Free Software berubah warna + kilatan.
+  const root = document.documentElement;
+  if (root.classList.contains("nav-merged")) {
+    try {
+      sessionStorage.setItem("ol-nav", "1");
+    } catch {}
+    const split = () => {
+      root.classList.add("nav-splitting");
+      root.classList.remove("nav-merged");
+      setTimeout(() => root.classList.remove("nav-splitting", "nav-plain"), 1000);
+    };
+    const start = () => setTimeout(split, 350);
+    // di home tunggu intro logo selesai dulu
+    if (root.classList.contains("intro-on")) addEventListener("intro:done", start, { once: true });
+    else start();
+  }
 </script>
 
 <style>
@@ -205,8 +232,11 @@ const isActive = (m: string) => {
     display: flex;
     align-items: center;
     gap: 8px;
+    /* gap & radius memantul sedikit melewati ukuran akhir saat memisah (efek gelembung) */
+    transition: gap 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
   }
   .nav-link {
+    position: relative;
     display: flex;
     align-items: center;
     height: 52px;
@@ -214,7 +244,11 @@ const isActive = (m: string) => {
     font-size: 15px;
     font-weight: 550;
     color: var(--ink-2);
-    transition: color 0.2s ease, background-color 0.2s ease, transform 0.4s var(--boing);
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      transform 0.4s var(--boing),
+      border-radius 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
   }
   .nav-link:hover {
     color: var(--ink);
@@ -229,6 +263,7 @@ const isActive = (m: string) => {
   /* ---- Free Software: tombol gradasi yang sesekali meletup lalu disapu kilatan cahaya ---- */
   .nav-hot {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
     border-radius: 18px;
     background: var(--grad);
@@ -236,6 +271,22 @@ const isActive = (m: string) => {
     font-weight: 700;
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 22px -12px rgb(125 85 204 / 0.85);
     animation: hot-pop 5s infinite;
+    transition:
+      color 0.5s ease,
+      box-shadow 0.5s ease,
+      transform 0.4s var(--boing),
+      border-radius 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
+  }
+  /* lapisan putih di atas gradasi (di bawah teks): penuh saat pembuka, lalu memudar = berubah warna */
+  .nav-hot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(255 255 255 / 0.92);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
   }
   .nav-hot::after {
     content: "";
@@ -251,15 +302,62 @@ const isActive = (m: string) => {
     background: var(--grad);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 14px 26px -12px rgb(125 85 204 / 0.95);
   }
-  /* sedang di halaman Free Software: cincin tipis penanda */
   .nav-hot.active {
     color: #fff;
     background: var(--grad);
+  }
+
+  /* ---- animasi pembuka (kelas di <html>, sekali per sesi) ---- */
+  /* 1. menyatu: tanpa jarak, sudut dalam rata, garis sekat tipis */
+  :global(.nav-merged) .nav-links {
+    gap: 0;
+  }
+  :global(.nav-merged) .nav-link {
+    border-radius: 0;
+  }
+  :global(.nav-merged) .nav-link:first-child {
+    border-radius: 18px 0 0 18px;
+  }
+  :global(.nav-merged) .nav-link:last-child {
+    border-radius: 0 18px 18px 0;
+  }
+  :global(.nav-merged) .nav-link + .nav-link {
+    background-image: linear-gradient(rgb(27 24 48 / 0.07), rgb(27 24 48 / 0.07));
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+  }
+  /* 2. Free Software masih putih seperti tombol lain, tanpa letupan/kilatan */
+  :global(.nav-plain) .nav-hot {
+    color: var(--ink-2);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.35),
-      0 0 0 3px rgb(255 255 255 / 0.9),
-      0 0 0 5px rgb(125 85 204 / 0.3),
-      0 10px 22px -12px rgb(125 85 204 / 0.85);
+      inset 0 0 0 1px rgb(255 255 255 / 0.8),
+      0 1px 2px rgb(27 24 48 / 0.06),
+      0 10px 26px -14px rgb(76 52 160 / 0.32);
+    animation: none;
+  }
+  :global(.nav-plain) .nav-hot::before {
+    opacity: 1;
+    background-image: linear-gradient(rgb(27 24 48 / 0.07), rgb(27 24 48 / 0.07));
+    background-size: 1px 100%;
+    background-repeat: no-repeat;
+  }
+  :global(.nav-plain) .nav-hot::after {
+    animation: none;
+  }
+  /* 3. memisah: tiap tombol memantul seperti gelembung, berurutan dari Free Software ke luar */
+  :global(.nav-splitting) .nav-link {
+    animation: nav-bubble 0.8s ease-out both;
+    animation-delay: calc(var(--d) * 1ms);
+  }
+  :global(.nav-splitting) .nav-hot::before {
+    background-image: none;
+  }
+  @keyframes nav-bubble {
+    0% { scale: 1 1; }
+    28% { scale: 1.07 0.9; }
+    52% { scale: 0.95 1.07; }
+    76% { scale: 1.02 0.98; }
+    100% { scale: 1 1; }
   }
   /* pop pakai "scale"/"translate" (bukan transform) supaya tidak bentrok dengan efek hover */
   @keyframes hot-pop {
@@ -276,7 +374,7 @@ const isActive = (m: string) => {
     justify-content: center;
     width: 52px;
     padding: 0;
-    border-radius: 50%;
+    border-radius: 26px;
   }
   .nav-home svg {
     width: 20px;

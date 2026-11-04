@@ -44,6 +44,11 @@ const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 8
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       document.documentElement.classList.add("js");
+      // Pertama kali buka situs (per sesi): menu desktop mulai menyatu, lalu memisah (lihat Nav.astro).
+      try {
+        if (!sessionStorage.getItem("ol-nav") && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+          document.documentElement.classList.add("nav-merged", "nav-plain");
+      } catch (e) {}
     </script>
     <!--
       GitHub Pages (cadangan) menyuruh browser menyimpan HTML 10 menit, dan tab yang lama terbuka
