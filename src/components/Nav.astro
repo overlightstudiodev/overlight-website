@@ -37,8 +37,8 @@ const isActive = (m: string) => {
       <BrandMark size={38} />
     </a>
 
-    <nav class="nav-links glass" aria-label={lang === "id" ? "Utama" : "Main"}>
-      <a href={href(lang, "/")} class:list={["nav-link", "nav-home", { active: path === home }]} aria-label={t(lang, "nav.home")}>
+    <nav class="nav-links" aria-label={lang === "id" ? "Utama" : "Main"}>
+      <a href={href(lang, "/")} class:list={["nav-link", "nav-home", "glass", { active: path === home }]} aria-label={t(lang, "nav.home")}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3.5 10.5 12 4l8.5 6.5" />
           <path d="M5.5 9.5V19a1 1 0 0 0 1 1H10v-5h4v5h3.5a1 1 0 0 0 1-1V9.5" />
@@ -48,10 +48,10 @@ const isActive = (m: string) => {
         links.map((l) => (
           <a
             href={l.to}
-            class:list={["nav-link", { active: isActive(l.match), "nav-hot": l.hot }]}
+            class:list={["nav-link", l.hot ? "nav-hot" : "glass", { active: isActive(l.match) }]}
             aria-current={isActive(l.match) ? "page" : undefined}
           >
-            {l.hot ? <span class="hot-chip">{l.label}</span> : l.label}
+            {l.label}
           </a>
         ))
       }
@@ -200,9 +200,11 @@ const isActive = (m: string) => {
       0 10px 26px -14px rgb(76 52 160 / 0.32);
   }
 
+  /* menu = tombol-tombol kaca terpisah (bukan satu batang bersekat) */
   .nav-links {
     display: flex;
-    overflow: hidden;
+    align-items: center;
+    gap: 8px;
   }
   .nav-link {
     display: flex;
@@ -212,54 +214,52 @@ const isActive = (m: string) => {
     font-size: 15px;
     font-weight: 550;
     color: var(--ink-2);
-    transition: color 0.2s ease, background-color 0.2s ease;
-  }
-  .nav-link + .nav-link {
-    box-shadow: inset 1px 0 0 rgb(27 24 48 / 0.07);
+    transition: color 0.2s ease, background-color 0.2s ease, transform 0.4s var(--boing);
   }
   .nav-link:hover {
     color: var(--ink);
-    background: rgb(255 255 255 / 0.65);
+    background: #fff;
+    transform: translateY(-2px);
   }
   .nav-link.active {
     color: var(--violet);
     font-weight: 700;
-    background: rgb(125 85 204 / 0.09);
+    background: rgb(242 237 253 / 0.92);
   }
-  /* ---- Free Software: kotak gradasi yang sesekali meletup lalu disapu kilatan cahaya ---- */
+  /* ---- Free Software: tombol gradasi yang sesekali meletup lalu disapu kilatan cahaya ---- */
   .nav-hot {
-    padding: 0 8px;
-  }
-  .hot-chip {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    height: 36px;
-    padding: 0 13px;
-    border-radius: 12px;
     overflow: hidden;
+    border-radius: 18px;
     background: var(--grad);
     color: #fff;
     font-weight: 700;
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 6px 14px -8px rgb(125 85 204 / 0.75);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 22px -12px rgb(125 85 204 / 0.85);
     animation: hot-pop 5s infinite;
-    transition: transform 0.4s var(--boing), box-shadow 0.3s ease;
   }
-  .hot-chip::after {
+  .nav-hot::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.75) 50%, transparent 70%);
+    background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.7) 50%, transparent 70%);
     translate: -110% 0;
     animation: hot-sweep 5s ease-in-out infinite;
     pointer-events: none;
   }
   .nav-hot:hover {
-    background: none;
+    color: #fff;
+    background: var(--grad);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 14px 26px -12px rgb(125 85 204 / 0.95);
   }
-  .nav-hot:hover .hot-chip {
-    transform: translateY(-2px);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 18px -8px rgb(125 85 204 / 0.85);
+  /* sedang di halaman Free Software: cincin tipis penanda */
+  .nav-hot.active {
+    color: #fff;
+    background: var(--grad);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      0 0 0 3px rgb(255 255 255 / 0.9),
+      0 0 0 5px rgb(125 85 204 / 0.3),
+      0 10px 22px -12px rgb(125 85 204 / 0.85);
   }
   /* pop pakai "scale"/"translate" (bukan transform) supaya tidak bentrok dengan efek hover */
   @keyframes hot-pop {
@@ -274,8 +274,9 @@ const isActive = (m: string) => {
 
   .nav-home {
     justify-content: center;
-    width: 54px;
+    width: 52px;
     padding: 0;
+    border-radius: 50%;
   }
   .nav-home svg {
     width: 20px;
@@ -503,8 +504,8 @@ const isActive = (m: string) => {
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hot-chip,
-    .hot-chip::after,
+    .nav-hot,
+    .nav-hot::after,
     .hot-text {
       animation: none;
     }
