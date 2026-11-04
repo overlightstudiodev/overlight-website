@@ -1,0 +1,5 @@
+# Laporan celah keamanan website Overlight Studio / Security reports for Overlight Studio
+Contact: mailto:overlightstudio.dev@gmail.com
+Expires: 2027-11-04T00:00:00.000Z
+Preferred-Languages: id, en
+Canonical: https://overlight.id/.well-known/security.txt

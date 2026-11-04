@@ -1,4 +1,18 @@
-# Cloudflare Pages. File di /_astro/ bernama hash (berubah tiap isi berubah), aman di-cache 1 tahun.
+# Cloudflare Pages: header untuk semua halaman dan file.
+# - CSP: semua script, gambar, dan font hanya dari situs sendiri. Script & style inline masih
+#   diizinkan karena intro, animasi menu, dan cek versi ditulis inline (situs statis tanpa input
+#   pengguna, jadi risiko XSS kecil). Link ke luar (WhatsApp, Gmail, Google Maps) adalah navigasi,
+#   tidak dibatasi CSP.
+# - frame-ancestors / X-Frame-Options: situs tidak bisa dipasang di iframe situs lain (clickjacking).
+# - Permissions-Policy: kamera, mikrofon, lokasi, dan pembayaran dimatikan (tidak dipakai).
+# HSTS diatur Codex di Cloudflare (bagian infrastruktur), bukan di file ini.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# File di /_astro/ bernama hash (berubah tiap isi berubah), aman di-cache 1 tahun.
 # HTML tetap memakai bawaan Cloudflare (max-age=0, selalu dicek ulang).
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
