@@ -2,12 +2,13 @@
 # - CSP: semua script, gambar, dan font hanya dari situs sendiri. Script & style inline masih
 #   diizinkan karena intro, animasi menu, dan cek versi ditulis inline (situs statis tanpa input
 #   pengguna, jadi risiko XSS kecil). Link ke luar (WhatsApp, Gmail, Google Maps) adalah navigasi,
-#   tidak dibatasi CSP.
+#   tidak dibatasi CSP. Pengecualian: Cloudflare Web Analytics (disisipkan Cloudflare ke halaman)
+#   butuh static.cloudflareinsights.com (script) dan cloudflareinsights.com (kirim data).
 # - frame-ancestors / X-Frame-Options: situs tidak bisa dipasang di iframe situs lain (clickjacking).
 # - Permissions-Policy: kamera, mikrofon, lokasi, dan pembayaran dimatikan (tidak dipakai).
 # HSTS diatur Codex di Cloudflare (bagian infrastruktur), bukan di file ini.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()
   Cross-Origin-Opener-Policy: same-origin
