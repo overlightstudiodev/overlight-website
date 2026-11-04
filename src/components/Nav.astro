@@ -138,58 +138,62 @@ const isActive = (m: string) => {
       requestAnimationFrame(() => root.classList.remove("nav-plain"));
     };
 
-    const run = () => {
-      // di HP menu ini disembunyikan
-      if (!bar || !goo || getComputedStyle(bar).display === "none") return finish();
-      const btns = [...bar.querySelectorAll<HTMLElement>(":scope > .nav-link")];
-      const blobs = [...goo.children] as HTMLElement[];
-      const box = bar.getBoundingClientRect();
+    // tahap 2: membelah. Lebar tombol baru diukur di sini (setelah font siap) supaya posisinya pas.
+    const split = (layer: HTMLElement, btns: HTMLElement[], blobs: HTMLElement[], blur: Element | null) => {
+      const box = bar!.getBoundingClientRect();
       const end = btns.map((b) => {
         const r = b.getBoundingClientRect();
         return { x: r.left - box.left, w: r.width, r: b.classList.contains("nav-home") ? r.height / 2 : 18 };
       });
-      const d = box.height;
-      // blur filter gooey: besar = gelembung yang berdekatan menyatu; dikecilkan supaya "jembatan" putus
-      const blur = bar.querySelector("#nav-goo feGaussianBlur");
-      gsap.set(blobs, { x: box.width / 2 - d / 2, width: d, borderRadius: d / 2 });
-      if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
-
-      const tl = gsap
-        .timeline({
-          onComplete: () => {
-            finish();
-            gsap.set([goo, ...btns, ...blobs], { clearProps: "all" });
-            if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
-          },
-        })
-        // satu gelembung muncul di tengah
-        .fromTo(goo, { autoAlpha: 1, scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(2.4)" })
-        // "bernapas" sebentar sebelum membelah
-        .to(goo, { scaleX: 1.14, scaleY: 0.88, duration: 0.2, ease: "power2.out" })
-        .to(goo, { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.5)" })
-        // membelah: tiap gelembung meluncur ke tempatnya sambil memanjang jadi tombol
-        .addLabel("split", "-=0.4")
-        .to(
-          blobs,
-          { x: (i) => end[i].x, width: (i) => end[i].w, borderRadius: (i) => end[i].r, duration: 0.95, ease: "power3.inOut" },
-          "split",
-        )
+      const tl = gsap.timeline({
+        onComplete: () => {
+          finish();
+          gsap.set([layer, ...btns, ...blobs], { clearProps: "all" });
+          if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
+        },
+      });
+      // tiap gelembung meluncur ke tempatnya sambil memanjang jadi tombol
+      tl.to(blobs, { x: (i) => end[i].x, width: (i) => end[i].w, borderRadius: (i) => end[i].r, duration: 0.95, ease: "power3.inOut" })
         // paruh akhir: blur mengecil -> jembatan cair putus, tiap gelembung lepas sendiri
-        .to(blur ?? {}, { attr: { stdDeviation: 0.6 }, duration: 0.35, ease: "power2.in" }, "split+=0.45")
+        .to(blur ?? {}, { attr: { stdDeviation: 0.6 }, duration: 0.35, ease: "power2.in" }, 0.45)
         // lepas: tombol asli (kaca + teks) muncul di atas gelembung, keduanya memantul kecil, gelembung memudar
-        .addLabel("pop", "split+=0.78")
+        .addLabel("pop", 0.78)
         .to(btns, { opacity: 1, duration: 0.3, stagger: { each: 0.03, from: "center" } }, "pop")
-        .to(goo, { autoAlpha: 0, duration: 0.35 }, "pop+=0.25");
+        .to(layer, { autoAlpha: 0, duration: 0.35 }, "pop+=0.25");
       for (const els of [blobs, btns]) {
         tl.to(els, { scaleX: 1.04, scaleY: 0.86, duration: 0.12, ease: "power2.out", stagger: { each: 0.03, from: "center" } }, "pop")
           .to(els, { scaleX: 1, scaleY: 1, duration: 0.55, ease: "elastic.out(1, 0.4)", stagger: { each: 0.03, from: "center" } }, "pop+=0.12");
       }
     };
 
-    const start = () => setTimeout(() => (document.fonts ? document.fonts.ready : Promise.resolve()).then(run), 300);
-    // di home tunggu intro logo selesai dulu
-    if (root.classList.contains("intro-on")) addEventListener("intro:done", start, { once: true });
-    else start();
+    // tahap 1: langsung muncul (tidak perlu ukuran tombol), lalu membelah saat napas hampir selesai + font siap
+    const run = () => {
+      // di HP menu ini disembunyikan
+      if (!bar || !goo || getComputedStyle(bar).display === "none") return finish();
+      const btns = [...bar.querySelectorAll<HTMLElement>(":scope > .nav-link")];
+      const blobs = [...goo.children] as HTMLElement[];
+      const box = bar.getBoundingClientRect();
+      const d = box.height;
+      // blur filter gooey: besar = gelembung yang berdekatan menyatu; dikecilkan supaya "jembatan" putus
+      const blur = bar.querySelector("#nav-goo feGaussianBlur");
+      gsap.set(blobs, { x: box.width / 2 - d / 2, width: d, borderRadius: d / 2 });
+      if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
+
+      const appear = gsap
+        .timeline()
+        // satu gelembung muncul di tengah
+        .fromTo(goo, { autoAlpha: 1, scale: 0 }, { scale: 1, duration: 0.45, ease: "back.out(2.4)" })
+        // "bernapas" sebentar sebelum membelah
+        .to(goo, { scaleX: 1.14, scaleY: 0.88, duration: 0.18, ease: "power2.out" })
+        .to(goo, { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.5)" });
+      const breathed = new Promise<void>((done) => appear.call(done, [], appear.duration() - 0.4));
+      const fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+      Promise.all([breathed, fonts]).then(() => split(goo, btns, blobs, blur));
+    };
+
+    // di home mulai saat bingkai intro yang membesar melewati header (±0,75 s setelah intro membuka halaman)
+    if (root.classList.contains("intro-on")) addEventListener("intro:reveal", () => setTimeout(run, 750), { once: true });
+    else run();
   }
 </script>
 
