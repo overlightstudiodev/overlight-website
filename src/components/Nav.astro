@@ -19,9 +19,6 @@ const links = [
   { label: t(lang, "nav.articles"), to: href(lang, "/articles"), match: href(lang, "/articles") },
   { label: t(lang, "nav.about"), to: href(lang, "/about"), match: href(lang, "/about") },
 ];
-// Animasi pembuka: tombol memisah berurutan dari tombol "hot" ke arah luar (--d = jeda ms).
-const hotAt = links.findIndex((l) => l.hot) + 1;
-const delay = (idx: number) => `--d:${Math.abs(idx - hotAt) * 70}`;
 const home = href(lang, "/").replace(/\/$/, "") || "/";
 const isActive = (m: string) => {
   const mm = m.replace(/\/$/, "") || "/";
@@ -44,7 +41,6 @@ const isActive = (m: string) => {
       <a
         href={href(lang, "/")}
         class:list={["nav-link", "nav-home", "glass", { active: path === home }]}
-        style={delay(0)}
         aria-label={t(lang, "nav.home")}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -53,17 +49,27 @@ const isActive = (m: string) => {
         </svg>
       </a>
       {
-        links.map((l, i) => (
+        links.map((l) => (
           <a
             href={l.to}
             class:list={["nav-link", l.hot ? "nav-hot" : "glass", { active: isActive(l.match) }]}
-            style={delay(i + 1)}
             aria-current={isActive(l.match) ? "page" : undefined}
           >
             {l.label}
           </a>
         ))
       }
+      <!-- animasi pembuka: satu gelembung yang membelah jadi tombol-tombol (filter "gooey") -->
+      <div class="nav-goo" aria-hidden="true" data-goo>
+        {Array.from({ length: links.length + 1 }, () => <i />)}
+      </div>
+      <svg class="goo-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="nav-goo" x="-20%" y="-60%" width="140%" height="220%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="goo" />
+          <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+        </filter>
+      </svg>
     </nav>
 
     <div class="nav-end">
@@ -103,6 +109,8 @@ const isActive = (m: string) => {
 <div class="nav-space" aria-hidden="true"></div>
 
 <script>
+  import { gsap } from "gsap";
+
   const nav = document.querySelector<HTMLElement>("[data-nav]");
   const burger = document.querySelector<HTMLButtonElement>("[data-burger]");
   const setOpen = (open: boolean) => {
@@ -113,19 +121,72 @@ const isActive = (m: string) => {
   document.querySelectorAll("[data-sheet] a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
   addEventListener("keydown", (e) => e.key === "Escape" && setOpen(false));
 
-  // Animasi pembuka (sekali per sesi, kelas dipasang di <head> oleh Base.astro):
-  // menu menyatu -> memisah seperti gelembung -> Free Software berubah warna + kilatan.
+  // Animasi pembuka (sekali per sesi; kelas "nav-goo-on nav-plain" dipasang di <head> oleh Base.astro):
+  // satu gelembung muncul -> membelah jadi tombol-tombol -> tombol asli muncul -> Free Software berubah warna + kilatan.
   const root = document.documentElement;
-  if (root.classList.contains("nav-merged")) {
+  if (root.classList.contains("nav-goo-on")) {
+    root.dataset.navRun = "1";
     try {
       sessionStorage.setItem("ol-nav", "1");
     } catch {}
-    const split = () => {
-      root.classList.add("nav-splitting");
-      root.classList.remove("nav-merged");
-      setTimeout(() => root.classList.remove("nav-splitting", "nav-plain"), 1000);
+    const bar = document.querySelector<HTMLElement>(".nav-links");
+    const goo = bar?.querySelector<HTMLElement>("[data-goo]");
+
+    const finish = () => {
+      root.classList.remove("nav-goo-on");
+      // satu frame kemudian: lapisan putih Free Software memudar, letupan + kilatan mulai
+      requestAnimationFrame(() => root.classList.remove("nav-plain"));
     };
-    const start = () => setTimeout(split, 350);
+
+    const run = () => {
+      // di HP menu ini disembunyikan
+      if (!bar || !goo || getComputedStyle(bar).display === "none") return finish();
+      const btns = [...bar.querySelectorAll<HTMLElement>(":scope > .nav-link")];
+      const blobs = [...goo.children] as HTMLElement[];
+      const box = bar.getBoundingClientRect();
+      const end = btns.map((b) => {
+        const r = b.getBoundingClientRect();
+        return { x: r.left - box.left, w: r.width, r: b.classList.contains("nav-home") ? r.height / 2 : 18 };
+      });
+      const d = box.height;
+      // blur filter gooey: besar = gelembung yang berdekatan menyatu; dikecilkan supaya "jembatan" putus
+      const blur = bar.querySelector("#nav-goo feGaussianBlur");
+      gsap.set(blobs, { x: box.width / 2 - d / 2, width: d, borderRadius: d / 2 });
+      if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
+
+      const tl = gsap
+        .timeline({
+          onComplete: () => {
+            finish();
+            gsap.set([goo, ...btns, ...blobs], { clearProps: "all" });
+            if (blur) gsap.set(blur, { attr: { stdDeviation: 7 } });
+          },
+        })
+        // satu gelembung muncul di tengah
+        .fromTo(goo, { autoAlpha: 1, scale: 0 }, { scale: 1, duration: 0.5, ease: "back.out(2.4)" })
+        // "bernapas" sebentar sebelum membelah
+        .to(goo, { scaleX: 1.14, scaleY: 0.88, duration: 0.2, ease: "power2.out" })
+        .to(goo, { scaleX: 1, scaleY: 1, duration: 0.45, ease: "elastic.out(1, 0.5)" })
+        // membelah: tiap gelembung meluncur ke tempatnya sambil memanjang jadi tombol
+        .addLabel("split", "-=0.4")
+        .to(
+          blobs,
+          { x: (i) => end[i].x, width: (i) => end[i].w, borderRadius: (i) => end[i].r, duration: 0.95, ease: "power3.inOut" },
+          "split",
+        )
+        // paruh akhir: blur mengecil -> jembatan cair putus, tiap gelembung lepas sendiri
+        .to(blur ?? {}, { attr: { stdDeviation: 0.6 }, duration: 0.35, ease: "power2.in" }, "split+=0.45")
+        // lepas: tombol asli (kaca + teks) muncul di atas gelembung, keduanya memantul kecil, gelembung memudar
+        .addLabel("pop", "split+=0.78")
+        .to(btns, { opacity: 1, duration: 0.3, stagger: { each: 0.03, from: "center" } }, "pop")
+        .to(goo, { autoAlpha: 0, duration: 0.35 }, "pop+=0.25");
+      for (const els of [blobs, btns]) {
+        tl.to(els, { scaleX: 1.04, scaleY: 0.86, duration: 0.12, ease: "power2.out", stagger: { each: 0.03, from: "center" } }, "pop")
+          .to(els, { scaleX: 1, scaleY: 1, duration: 0.55, ease: "elastic.out(1, 0.4)", stagger: { each: 0.03, from: "center" } }, "pop+=0.12");
+      }
+    };
+
+    const start = () => setTimeout(() => (document.fonts ? document.fonts.ready : Promise.resolve()).then(run), 300);
     // di home tunggu intro logo selesai dulu
     if (root.classList.contains("intro-on")) addEventListener("intro:done", start, { once: true });
     else start();
@@ -229,14 +290,12 @@ const isActive = (m: string) => {
 
   /* menu = tombol-tombol kaca terpisah (bukan satu batang bersekat) */
   .nav-links {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 8px;
-    /* gap & radius memantul sedikit melewati ukuran akhir saat memisah (efek gelembung) */
-    transition: gap 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
   }
   .nav-link {
-    position: relative;
     display: flex;
     align-items: center;
     height: 52px;
@@ -244,11 +303,7 @@ const isActive = (m: string) => {
     font-size: 15px;
     font-weight: 550;
     color: var(--ink-2);
-    transition:
-      color 0.2s ease,
-      background-color 0.2s ease,
-      transform 0.4s var(--boing),
-      border-radius 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
+    transition: color 0.2s ease, background-color 0.2s ease, transform 0.4s var(--boing);
   }
   .nav-link:hover {
     color: var(--ink);
@@ -271,11 +326,7 @@ const isActive = (m: string) => {
     font-weight: 700;
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 22px -12px rgb(125 85 204 / 0.85);
     animation: hot-pop 5s infinite;
-    transition:
-      color 0.5s ease,
-      box-shadow 0.5s ease,
-      transform 0.4s var(--boing),
-      border-radius 0.8s cubic-bezier(0.25, 1.9, 0.5, 1);
+    transition: color 0.5s ease, box-shadow 0.5s ease, transform 0.4s var(--boing);
   }
   /* lapisan putih di atas gradasi (di bawah teks): penuh saat pembuka, lalu memudar = berubah warna */
   .nav-hot::before {
@@ -307,26 +358,38 @@ const isActive = (m: string) => {
     background: var(--grad);
   }
 
-  /* ---- animasi pembuka (kelas di <html>, sekali per sesi) ---- */
-  /* 1. menyatu: tanpa jarak, sudut dalam rata, garis sekat tipis */
-  :global(.nav-merged) .nav-links {
-    gap: 0;
+  /* ---- animasi pembuka (kelas di <html>, sekali per sesi; gerakan diatur GSAP di skrip atas) ---- */
+  /* gelembung-gelembung putih di belakang menu; filter #nav-goo membuat yang berdekatan menyatu seperti cairan */
+  .goo-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
   }
-  :global(.nav-merged) .nav-link {
-    border-radius: 0;
+  .nav-goo {
+    position: absolute;
+    inset: 0;
+    display: none;
+    visibility: hidden;
+    pointer-events: none;
+    filter: url(#nav-goo) drop-shadow(0 10px 14px rgb(76 52 160 / 0.2));
   }
-  :global(.nav-merged) .nav-link:first-child {
-    border-radius: 18px 0 0 18px;
+  .nav-goo i {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 52px;
+    height: 100%;
+    border-radius: 26px;
+    background: #fff;
   }
-  :global(.nav-merged) .nav-link:last-child {
-    border-radius: 0 18px 18px 0;
+  :global(.nav-goo-on) .nav-goo {
+    display: block;
   }
-  :global(.nav-merged) .nav-link + .nav-link {
-    background-image: linear-gradient(rgb(27 24 48 / 0.07), rgb(27 24 48 / 0.07));
-    background-size: 1px 100%;
-    background-repeat: no-repeat;
+  /* tombol asli disembunyikan dulu, dimunculkan GSAP setelah gelembung membelah */
+  :global(.nav-goo-on) .nav-links > .nav-link {
+    opacity: 0;
   }
-  /* 2. Free Software masih putih seperti tombol lain, tanpa letupan/kilatan */
+  /* Free Software masih putih seperti tombol lain, tanpa letupan/kilatan */
   :global(.nav-plain) .nav-hot {
     color: var(--ink-2);
     box-shadow:
@@ -337,27 +400,9 @@ const isActive = (m: string) => {
   }
   :global(.nav-plain) .nav-hot::before {
     opacity: 1;
-    background-image: linear-gradient(rgb(27 24 48 / 0.07), rgb(27 24 48 / 0.07));
-    background-size: 1px 100%;
-    background-repeat: no-repeat;
   }
   :global(.nav-plain) .nav-hot::after {
     animation: none;
-  }
-  /* 3. memisah: tiap tombol memantul seperti gelembung, berurutan dari Free Software ke luar */
-  :global(.nav-splitting) .nav-link {
-    animation: nav-bubble 0.8s ease-out both;
-    animation-delay: calc(var(--d) * 1ms);
-  }
-  :global(.nav-splitting) .nav-hot::before {
-    background-image: none;
-  }
-  @keyframes nav-bubble {
-    0% { scale: 1 1; }
-    28% { scale: 1.07 0.9; }
-    52% { scale: 0.95 1.07; }
-    76% { scale: 1.02 0.98; }
-    100% { scale: 1 1; }
   }
   /* pop pakai "scale"/"translate" (bukan transform) supaya tidak bentrok dengan efek hover */
   @keyframes hot-pop {

@@ -44,10 +44,16 @@ const og = await getImage({ src: ogImage, width: 1200, format: "jpg", quality: 8
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       document.documentElement.classList.add("js");
-      // Pertama kali buka situs (per sesi): menu desktop mulai menyatu, lalu memisah (lihat Nav.astro).
+      // Pertama kali buka situs (per sesi): menu desktop muncul dari satu gelembung yang membelah (lihat Nav.astro).
       try {
-        if (!sessionStorage.getItem("ol-nav") && !matchMedia("(prefers-reduced-motion: reduce)").matches)
-          document.documentElement.classList.add("nav-merged", "nav-plain");
+        if (!sessionStorage.getItem("ol-nav") && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          var html = document.documentElement;
+          html.classList.add("nav-goo-on", "nav-plain");
+          // pengaman: kalau skrip Nav gagal jalan, menu tetap muncul
+          setTimeout(function () {
+            if (!html.dataset.navRun) html.classList.remove("nav-goo-on", "nav-plain");
+          }, 12000);
+        }
       } catch (e) {}
     </script>
     <!--
